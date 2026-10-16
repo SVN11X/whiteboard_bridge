@@ -1,3 +1,5 @@
+> Actualización v0.4.0: se implementó un codec experimental del contenedor HTML observado y captura voluntaria de muestras. El detalle actual está en [WHITEBOARD_CLIPBOARD.md](WHITEBOARD_CLIPBOARD.md). La investigación siguiente conserva la distinción entre capacidad web y aceptación nativa, que continúa pendiente de verificación autenticada.
+
 # Investigación del portapapeles y Whiteboard
 
 Consulta de fuentes primarias: **16 de octubre de 2026**. Las capacidades de Microsoft y los navegadores pueden cambiar. Se separan documentación oficial, inferencias y pruebas ejecutadas.
@@ -40,7 +42,7 @@ El HTML de Bridge contiene texto escapado y estilos cerrados, saneados con DOMPu
 3. Si aparece un formato legítimo y portable, documentar su procedencia, estructura y versión sin credenciales ni referencias privadas.
 4. Generar un único objeto mínimo y demostrar en Whiteboard que ofrece sus controles nativos, propiedades editables y objetos separados.
 5. Repetir en dos sesiones y navegadores soportados, con evidencia local anonimizada.
-6. Solo entonces crear un encoder y fixtures para los tipos demostrados. Un resultado manual no habilita un adaptador por sí solo.
+6. Solo entonces certificar como compatibles el encoder y los fixtures de los tipos demostrados. Un resultado manual no habilita un adaptador por sí solo.
 
 Si solo se exponen PNG o texto, la página no puede deducir la estructura faltante con certeza. Si la transferencia contiene referencias de servidor o requiere endpoints privados, Bridge no tiene autorización ni capacidad web para sustituir ese contrato. No es válido saltarse autenticación, políticas o restricciones de origen.
 

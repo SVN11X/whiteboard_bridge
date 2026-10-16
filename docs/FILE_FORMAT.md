@@ -56,3 +56,7 @@ Se conservan **JSON** como alternativa editable compatible con versiones anterio
 ## Microsoft Whiteboard
 
 `.wbridge` no se presenta como un archivo `.whiteboard`. Cambiar su extensión no crea compatibilidad. Esta actualización define la importación/exportación del editor Bridge; la transferencia nativa a Microsoft sigue bajo el protocolo de investigación documentado en CLIPBOARD_RESEARCH.md.
+
+## Fondo y figuras en v0.4.0
+
+El esquema 2 admite `background: { color: "#ffffff", grid: "dot" }`. Si falta, la lectura asigna ese fondo por defecto. Las cuadrículas son `solid`, `dot`, `square`, `graph`, `hybrid`, `diamond`, `wide-rule`, `triangle` y `narrow-rule`. Se añaden `pentagon`, `parallelogram`, `arrow-shape` y `capsule` a las figuras existentes. Los documentos con esas figuras necesitan Bridge 0.4.0 o posterior. No cambia el nombre de IndexedDB ni se elimina ninguna pizarra guardada. El fondo se conserva en el proyecto editable; los exports visuales siguen renderizando los objetos.

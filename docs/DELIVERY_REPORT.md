@@ -1,47 +1,28 @@
-# Informe de entrega · Whiteboard Bridge v0.3.1
+# Entrega · Whiteboard Bridge v0.4.0
 
-## Corrección de GitHub Pages
+Base real: `SVN11X/whiteboard_bridge`, commit `90b35df409d9fe86895dca908f7dc00dfe1a46d0` de `main`. Trabajo local en `feature/whiteboard-workspace`; no se ha hecho push ni un despliegue remoto de esta actualización.
 
-La versión 0.3.1 se prepara desde el repositorio real `SVN11X/whiteboard_bridge`, commit `131d0140853d9f98c877299b1d508a10e9749d9e`. Corrige la ruta `/whiteboard_bridge/` en Vite, el service worker y las pruebas. El despliegue anterior terminó correctamente, pero el HTML buscaba recursos en `/whiteboard-bridge/` y recibía 404.
+## Cambios visibles
 
-Se añade una comprobación de compilación contra `GITHUB_REPOSITORY`: valida enlaces, archivos del manifiesto, ruta y recursos offline. Se verificó su aprobación con el nombre correcto y su rechazo con un nombre diferente. Pasaron TypeScript, ESLint, las 29 pruebas unitarias/integración y las 13 E2E sobre la ruta corregida, incluida importación/exportación y recarga offline.
+- Cabecera de 52 px, lienzo completo, barra flotante inferior, paletas de notas, reacciones, tinta y figuras y zoom a la derecha. Se usaron las ocho capturas adjuntas como referencia; no se distribuyen esas capturas en el repositorio.
+- Panel de propiedades opcional. Un clic escribe directamente en una nota, texto o figura; arrastrar mueve. Enter/F2 abre edición, Ctrl+Enter termina, Escape cancela. Undo agrupa la escritura por sesión.
+- Pizarras nuevas vacías y conservación de documentos existentes. Fondos por documento con diez colores y nueve cuadrículas, con un valor por defecto al abrir archivos anteriores.
+- Plantillas con objetos editables, reacciones, comentarios locales, enlaces y temporizador. Compartir entrega copias WBRIDGE o PNG, sin aparentar una sesión colaborativa.
 
-El ZIP completo y `FIX_GITHUB_PAGES.patch` permiten actualizar el repositorio existente. La corrección se verifica localmente; no se ha hecho push ni un nuevo despliegue remoto. La guía está en [DEPLOYMENT.md](DEPLOYMENT.md), con evidencia HTTP en [pages-diagnosis.json](evidence/pages-diagnosis.json) y la suite actual en [pages-fix-e2e.json](evidence/pages-fix-e2e.json).
+## Portapapeles
 
-## Construido
+La versión anterior no implementaba la representación específica de Microsoft. Se añadió un encoder experimental del contenedor HTML observado para notas, texto y siete figuras. Se reconoce el mismo contenedor al pegar en Bridge. No se añade PNG a ese modo ni se convierte silenciosamente un tipo incompatible.
 
-Actualización v0.3.0: archivo editable principal `.wbridge` (JSON UTF-8, esquema v2), botón Importar y Ctrl+O, arrastrar proyectos o imágenes, exportación de pizarra completa o selección, Ctrl+S al formato principal, guía integrada y ejemplo descargable. Se conservan los JSON anteriores y las exportaciones visuales. La importación crea otra pizarra y valida el contenido antes de abrirlo.
+El payload combina un ejemplo histórico de clipboard con propiedades de objetos observadas en convertidores actuales del cliente público. Su aceptación por el importador de Microsoft sigue siendo una hipótesis. No se certifica interoperabilidad nativa a partir de un round-trip de nuestro codec.
 
-Aplicación estática React/TypeScript/Vite con identidad visual propia, modos claro/oscuro y layout responsive. Lienzo con viewport, zoom y desplazamiento; selección individual/múltiple, área y lazo; lápiz con presión disponible, rotulador, resaltador y borrador por objeto. Texto, notas, rectángulos, elipses, triángulos, rombos, líneas, flechas simples/dobles, conectores, imágenes y grupos.
+El navegador de Microsoft llegó al inicio de sesión, sin una sesión autenticada disponible. No se ejecutó Bridge → Whiteboard real. Para continuar se implementó una captura voluntaria: Configuración → Diagnóstico de portapapeles → Capturar muestra Whiteboard → pegar una nota sintética del original → Descargar muestra JSON. Ver WHITEBOARD_CLIPBOARD.md.
 
-Manipulación con arrastre, resize, rotación, panel numérico, duplicación, alineación, distribución, capas, bloqueo, deshacer/rehacer, edición directa y menús contextuales. Gestión de pizarras con guardado IndexedDB, importación del esquema anterior, JSON editable, SVG/PNG visual, respaldos y recuperación como copia.
+## Comprobación
 
-Adaptadores independientes de texto, HTML saneado, PNG y formato web propio, junto con modo combinado y reporte de fallback. Compatibility Lab registra metadatos, comparaciones por origen y observaciones con criterios; exporta matriz e informe. PWA con precache, modo offline y activación de actualización por el usuario. Workflow de GitHub Pages con validaciones.
+TypeScript, ESLint, 35 pruebas unitarias/integración y compilación con comprobación de la ruta `/whiteboard_bridge/`. La suite de navegador incluye los flujos anteriores y ocho casos nuevos de edición directa, layout, fondos, portapapeles y captura. El resultado final y los archivos de evidencia se registran en TESTING.md.
 
-## Probado
+Se revisaron capturas propias de escritorio y 360 px. Los recursos de Microsoft se inspeccionaron solo como fuentes públicas; no se incorporan ni se descargan al ejecutar la aplicación.
 
-29 pruebas unitarias/integración y 13 E2E aprobadas, TypeScript, lint y compilación. Edición, guardado y recarga, transformación, bloqueo, agrupación, importación, PNG, copiado real entre pestañas de Bridge, MIME personalizado, carga offline, móvil y oscuro. Rendimiento medido con 100, 1.000 y 10.000 figuras simples. Ver TESTING.md y sus JSON de evidencia.
+## Entrega
 
-El prototipo original se conserva en `legacy/v0.1.0/`; el diagnóstico PowerShell continúa independiente en `windows/`. El código fuente completo y una compilación de `dist/` están incluidos. El parche actual `FIX_GITHUB_PAGES.patch` parte del commit remoto `131d0140853d9f98c877299b1d508a10e9749d9e`; se verifica mediante aplicación sobre una copia limpia y comparación del árbol Git.
-
-## Experimental y pendiente
-
-La transferencia hacia Microsoft Whiteboard Web/Teams se preparó para ejecución manual con los diez tipos obligatorios. **No se probó una cuenta real de Microsoft ni se implementó un encoder nativo.** Los estados de la matriz externa son No ejecutado. Los resultados positivos de Bridge→Bridge no se extrapolan a Microsoft.
-
-Graph ofrece conversión de `.whiteboard` existente hacia HTML/PDF; no se comprobó que permita fabricar notas, figuras o el clipboard nativo desde una página. El descriptor `WhiteboardNativeAdapter` está desactivado y exige evidencia antes de implementar un encoder.
-
-No se realizó publicación remota, instalación desde el diálogo PWA de Windows, validación de stylus físico, Edge real, lectores de pantalla o auditoría WCAG completa. PDF local, borrado parcial de tinta, colaboración remota y paneles reorganizables no están implementados; sus límites y prioridades están documentados.
-
-## Restricciones demostrables
-
-El JavaScript web solo accede a representaciones que el navegador expone y permite. No puede invocar directamente Win32/COM, forzar que Whiteboard entienda un formato propio ni acceder a sesiones de Microsoft de otra pestaña. PNG aplana el contenido. Exportar JSON no crea un archivo `.whiteboard`.
-
-No se declara una imposibilidad universal de interoperabilidad editable: sigue faltando evidencia reproducible del contrato que acepte el destino. El procedimiento exacto para investigarlo está en CLIPBOARD_RESEARCH.md e INTEROPERABILITY_MATRIX.md.
-
-## Para continuar
-
-1. Aplicar la corrección en el repositorio existente y hacer push a `main`, siguiendo DEPLOYMENT.md. Pages ya está activo.
-2. Abrir la web publicada y verificar recarga, IndexedDB y Clipboard en HTTPS.
-3. Ejecutar primero Whiteboard→Whiteboard con objetos sintéticos.
-4. Ejecutar Bridge→Whiteboard por objeto/formato y registrar menú, editabilidad, geometría, agrupación y repetición.
-5. Implementar un adaptador nativo únicamente si aparece un mecanismo portable, legítimo y aceptado por el original.
+ZIP completo con el código y `dist/`. Parche `WHITEBOARD_WORKSPACE_V0.4.0.patch` generado desde la base indicada, aplicable con `git am --3way` y verificado en una copia limpia mediante comparación del árbol Git. El archivo RELEASE.json del ZIP contiene commits, árbol y estado de validación.

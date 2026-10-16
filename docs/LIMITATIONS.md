@@ -2,7 +2,7 @@
 
 ## No validado externamente
 
-- Bridge→Microsoft Whiteboard nativo. No hay encoder propietario implementado. La UI y el descriptor de capacidad lo indican.
+- Bridge→Microsoft Whiteboard nativo. Existe un encoder experimental de HTML para notas, texto y figuras, pero el pegado real en Microsoft no está comprobado. Tinta, imágenes y conectores no se serializan en ese modo; los grupos compatibles se separan. Ver WHITEBOARD_CLIPBOARD.md.
 - Acceso o paridad de funciones entre cuentas personales, trabajo y educación; Web frente a Teams; Edge y Chrome en Windows.
 - Ejecución de GitHub Actions y publicación remota. La ruta equivalente y el paquete compilado se prueban localmente.
 - Inspector PowerShell en Windows: conservado y revisado, no ejecutado en Linux.
@@ -33,3 +33,7 @@
 El namespace web personalizado requiere que el receptor lo admita; no obliga a Microsoft a hacerlo. La web no tiene acceso directo a Win32/COM ni a las sesiones de otra pestaña. Graph documenta conversiones de archivos existentes, sin demostrar una ruta de fabricación de objetos para este flujo. Esas restricciones explican por qué no se ofrece el botón «Nativo validado».
 
 No se sostiene que todo intercambio editable sea imposible en cualquier escenario. Lo que falta es evidencia suficiente y un contrato reproducible para implementarlo legítimamente.
+
+## Entorno de v0.4.0
+
+La disposición se adapta a las capturas, pero no se replica el servicio de Microsoft: Compartir entrega un archivo, los comentarios son locales y no se incluyen cuentas, coautoría ni Loop. Los enlaces y videos se añaden como enlaces editables que se pueden abrir; no se incrustan iframes. Las cuadrículas se conservan en WBRIDGE; las exportaciones SVG/PNG continúan representando objetos sobre su fondo de exportación.

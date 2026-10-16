@@ -13,15 +13,15 @@
 | `src/clipboard/` | Adaptadores de texto, HTML, PNG y formato propio; lectura explícita |
 | `src/interoperability/` | Esquema de observaciones y requisitos para clasificar una prueba |
 | `src/persistence/` | IndexedDB con Dexie, cola de escritura, versiones y respaldo |
-| `src/components/` | Paneles accesibles, proyectos, laboratorio y diálogos |
+| `src/components/` | Cabecera y barra flotante, fondos, paneles accesibles, proyectos, captura de muestras y diálogos |
 | `scripts/build-sw.mjs` | Precache del paquete estático con hash de contenido |
 | `scripts/check-pages.mjs` | Verifica rutas y recursos generados contra el nombre del repositorio de Pages |
 
-El documento no depende de Microsoft. El descriptor `WhiteboardNativeAdapter` no tiene encoder y está desactivado: expresa la capacidad pendiente y sus criterios, sin fingir una integración.
+El documento no depende de Microsoft. El módulo `src/clipboard/whiteboard.ts` implementa un codec experimental del contenedor HTML observado de Microsoft. El descriptor informa `verifiedInMicrosoft: false`; las comprobaciones en Chromium y Bridge no se extrapolan al destino autenticado. Ver WHITEBOARD_CLIPBOARD.md.
 
 ## Documento y relaciones
 
-Versión 2 con `schema: whiteboard-bridge`. Cada objeto tiene identidad, posición, dimensiones, rotación, zIndex, opacidad, bloqueo y estilos. Los tipos añaden texto, figura, extremos de línea, puntos normalizados de tinta, raster data URL o hijos de grupo. `groupId` e hijos deben concordar; se rechazan ciclos, referencias rotas, IDs duplicados y más de 16 niveles. Los conectores apuntan a IDs de objetos y sus extremos se recalculan desde los centros.
+Versión 2 con `schema: whiteboard-bridge`. El fondo tiene color y cuadrícula; al abrir documentos anteriores se asigna blanco con puntos. Se amplía el conjunto de figuras, por lo que una aplicación anterior a 0.4.0 puede rechazar las figuras nuevas. Cada objeto tiene identidad, posición, dimensiones, rotación, zIndex, opacidad, bloqueo y estilos. Los tipos añaden texto, figura, extremos de línea, puntos normalizados de tinta, raster data URL o hijos de grupo. `groupId` e hijos deben concordar; se rechazan ciclos, referencias rotas, IDs duplicados y más de 16 niveles. Los conectores apuntan a IDs de objetos y sus extremos se recalculan desde los centros.
 
 Los grupos usan coordenadas absolutas para sus miembros; una transformación de grupo se aplica a los descendientes y se recalcula el límite agregado. Las copias renuevan IDs y remapean grupos y conectores. Las referencias que salen de una selección copiada se eliminan del payload portable. El tamaño y rotación individuales se conservan dentro del esquema.
 

@@ -21,7 +21,7 @@ function textMarkup(o: Extract<BoardObject, { type: 'text' | 'sticky' | 'shape' 
   const x = o.align === 'left' ? padding : o.align === 'center' ? o.width / 2 : o.width - padding;
   return `<text fill="${o.textColor}" font-family="system-ui, Segoe UI, sans-serif" font-size="${o.fontSize}" font-weight="${o.type === 'text' && o.fontSize >= 30 ? 650 : 450}" text-anchor="${o.align === 'left' ? 'start' : o.align === 'right' ? 'end' : 'middle'}">${visible.map((line, i) => `<tspan x="${x}" y="${padding + o.fontSize + i * o.fontSize * 1.25}">${esc(line)}</tspan>`).join('')}</text>`;
 }
-export function primitiveMarkup(o: BoardObject): string {
+export function primitiveMarkup(o: BoardObject, showText = true): string {
   const w = o.width, h = o.height;
   const style = `fill="${o.fill}" stroke="${o.stroke}" stroke-width="${o.strokeWidth}" stroke-linejoin="round"`;
   if (o.type === 'group') return '';
@@ -45,10 +45,12 @@ export function primitiveMarkup(o: BoardObject): string {
     const head = (tip: typeof a, other: typeof a) => { const angle = Math.atan2(tip.y - other.y, tip.x - other.x), len = Math.max(12, o.strokeWidth * 4); return `<path d="M${tip.x - len * Math.cos(angle - 0.5)} ${tip.y - len * Math.sin(angle - 0.5)} L${tip.x} ${tip.y} L${tip.x - len * Math.cos(angle + 0.5)} ${tip.y - len * Math.sin(angle + 0.5)}"/>`; };
     return `<g fill="none" stroke="${o.stroke}" stroke-width="${o.strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M${a.x} ${a.y} L${b.x} ${b.y}"/>${o.arrow !== 'none' ? head(b, a) : ''}${o.arrow === 'both' ? head(a, b) : ''}</g>`;
   }
-  if (o.type === 'text') return textMarkup(o);
-  if (o.type === 'sticky') return `<rect width="${w}" height="${h}" rx="3" fill="${o.fill}"/><path d="M${w - 24} ${h} L${w} ${h - 24} L${w - 24} ${h - 24}Z" fill="#000000" opacity="0.08"/>${textMarkup(o)}`;
-  const geometry = o.shape === 'ellipse' ? `<ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}" ${style}/>` : o.shape === 'triangle' ? `<polygon points="${w / 2},0 ${w},${h} 0,${h}" ${style}/>` : o.shape === 'diamond' ? `<polygon points="${w / 2},0 ${w},${h / 2} ${w / 2},${h} 0,${h / 2}" ${style}/>` : `<rect width="${w}" height="${h}" rx="10" ${style}/>`;
-  return geometry + textMarkup(o);
+  if (o.type === 'text') return showText ? textMarkup(o) : '';
+  const text = showText ? textMarkup(o) : '';
+  if (o.type === 'sticky') return `<rect width="${w}" height="${h}" rx="2" fill="${o.fill}"/>${text}`;
+  const points = o.shape === 'triangle' ? `${w / 2},0 ${w},${h} 0,${h}` : o.shape === 'diamond' ? `${w / 2},0 ${w},${h / 2} ${w / 2},${h} 0,${h / 2}` : o.shape === 'pentagon' ? `${w / 2},0 ${w},${h * .38} ${w * .81},${h} ${w * .19},${h} 0,${h * .38}` : o.shape === 'parallelogram' ? `${w * .22},0 ${w},0 ${w * .78},${h} 0,${h}` : `${w * .6},0 ${w},${h / 2} ${w * .6},${h} ${w * .6},${h * .7} 0,${h * .7} 0,${h * .3} ${w * .6},${h * .3}`;
+  const geometry = o.shape === 'ellipse' ? `<ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}" ${style}/>` : o.shape === 'rect' || o.shape === 'capsule' ? `<rect width="${w}" height="${h}" rx="${o.shape === 'capsule' ? Math.min(w, h) / 2 : 0}" ${style}/>` : `<polygon points="${points}" ${style}/>`;
+  return geometry + text;
 }
 export function objectMarkup(o: BoardObject): string {
   return `<g transform="translate(${o.x} ${o.y}) rotate(${o.rotation} ${o.width / 2} ${o.height / 2})" opacity="${o.opacity}">${primitiveMarkup(o)}</g>`;

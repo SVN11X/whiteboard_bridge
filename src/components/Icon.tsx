@@ -1,5 +1,10 @@
 import type { CSSProperties } from 'react';
 const paths: Record<string, string> = {
+  home: 'M3 10l9-8 9 8v12h-7v-8h-4v8H3z', settings: 'M9 3h6l1 4 4 1 2 5-3 3 1 4-5 2-3-3-4 1-3-5 2-3zM16 12a4 4 0 11-8 0 4 4 0 018 0',
+  timer: 'M9 2h6M12 2v3M19 5l2 2M12 9v5M21 14a9 9 0 11-18 0 9 9 0 0118 0', share: 'M13 8V3l8 7-8 7v-5c-6 0-8 3-10 7 0-7 3-11 10-11',
+  shapes: 'M3 4h12v12H3zM12 12h9v9h-9z', background: 'M3 4h18v16H3zM6 8h3M15 8h3M6 12h3M15 12h3M6 16h3M15 16h3',
+  pentagon: 'M12 2l10 8-4 12H6L2 10z', parallelogram: 'M7 4h15l-5 16H2z', capsule: 'M8 4h8a8 8 0 010 16H8A8 8 0 018 4z', 'arrow-shape': 'M2 8h11V3l9 9-9 9v-5H2z',
+  template: 'M3 3h18v18H3zM9 3v18M9 10h12', link: 'M9 8H7a4 4 0 000 8h3M15 8h2a4 4 0 010 8h-3M8 12h8', back: 'M20 12H4M10 5l-7 7 7 7', offline: 'M3 3l18 18M2 9a16 16 0 0120 0M5 13a11 11 0 0114 0M9 17a5 5 0 016 0M12 21h.01',
   select: 'M5 3l14 10-7 1-3 7z', hand: 'M8 11V5a2 2 0 014 0v6m0-5a2 2 0 014 0v6m0-3a2 2 0 014 0v7c0 4-3 6-7 6-3 0-5-2-6-4l-3-5a2 2 0 013-2l1 1',
   pen: 'M15 4l5 5M4 20l5-1L21 7a2 2 0 00-5-5L4 15z', marker: 'M14 3l7 7-9 9-7-7zM5 12l-2 7 2 2 7-2', highlighter: 'M14 3l7 7-9 9-7-7zM5 12l-2 7 2 2 7-2M2 22h18',
   eraser: 'M9 20L3 14a2 2 0 010-3l8-8a2 2 0 013 0l7 7a2 2 0 010 3l-7 7H9zm-3-9l9 9M14 20h8',

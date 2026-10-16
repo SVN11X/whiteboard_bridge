@@ -4,6 +4,7 @@ import App from './app/App';
 import { useEditor } from './editor/store';
 import { download } from './utils/files';
 import './styles/app.css';
+import './styles/workspace.css';
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
   state = { error: false };
   static getDerivedStateFromError() { return { error: true }; }

@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-16T20:41:14.968Z",
+  "errors": [],
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "width": 360,
+      "height": 800
+    },
+    {
+      "width": 360,
+      "height": 900
+    }
+  ],
+  "fixture": "Synthetic notes and shapes; not Microsoft Whiteboard.",
+  "screenshots": [
+    "workspace-v0.4-empty.png",
+    "workspace-v0.4-direct-edit.png",
+    "workspace-v0.4-background.png",
+    "workspace-v0.4-mobile.png"
+  ],
+  "finalLayoutCheck": "The final layout test was repeated at 360, 820 and 1440 px after moving status messages so they do not cover color palettes.",
+  "mobileScreenshotSource": "Final responsive layout test, synthetic blank imported board, 360 × 900."
+}

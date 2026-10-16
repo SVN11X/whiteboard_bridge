@@ -1,0 +1,71 @@
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import type { Board } from '../models/document';
+import { TOOLS, type Tool, type ToolOptions } from '../editor/tools';
+import { Icon } from './Icon';
+import { WHITEBOARD_NOTE_COLORS } from '../clipboard/whiteboard';
+
+export const NOTE_COLORS = WHITEBOARD_NOTE_COLORS;
+const colorNames = ['amarilla', 'naranja', 'melocotón', 'roja', 'rosa', 'verde lima', 'verde', 'celeste', 'azul', 'morada', 'blanca', 'gris'];
+const inkTools: Tool[] = ['pen', 'marker', 'highlighter', 'eraser', 'lasso'];
+const shapeTools: Tool[] = ['rect', 'ellipse', 'triangle', 'pentagon', 'arrow', 'line', 'arrow-shape', 'parallelogram', 'diamond', 'capsule', 'both', 'connector'];
+type Palette = 'ink' | 'notes' | 'reactions' | 'shapes' | 'more' | null;
+
+function WorkspaceTimer() {
+  const [open, setOpen] = useState(false), [seconds, setSeconds] = useState(300), [running, setRunning] = useState(false), [duration, setDuration] = useState(5);
+  useEffect(() => { if (!running) return; const timer = setInterval(() => setSeconds(value => { if (value <= 1) { setRunning(false); return 0; } return value - 1; }), 1000); return () => clearInterval(timer); }, [running]);
+  const display = `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+  return <div className="timer-wrap"><button className="icon-button" aria-label="Temporizador" title="Temporizador" aria-expanded={open} onClick={() => setOpen(!open)}><Icon name="timer"/>{running && <span className="timer-badge">{display}</span>}</button>{open && <section className="timer-popover floating-panel" aria-label="Temporizador de trabajo"><div className="popover-heading"><strong>Temporizador</strong><button className="icon-button" aria-label="Cerrar temporizador" onClick={() => setOpen(false)}><Icon name="close" size={17}/></button></div><output aria-live={seconds === 0 ? 'polite' : 'off'}>{display}</output><label className="field">Minutos<input type="number" min={1} max={180} disabled={running} value={duration} onChange={e => { const n = Number(e.target.value); if (n >= 1 && n <= 180) { setDuration(n); setSeconds(n * 60); } }}/></label><div className="button-row"><button className="primary" onClick={() => { if (!seconds) setSeconds(duration * 60); setRunning(!running); }}>{running ? 'Pausar' : 'Iniciar'}</button><button className="secondary" onClick={() => { setRunning(false); setSeconds(duration * 60); }}>Reiniciar</button></div></section>}</div>;
+}
+
+export function WorkspaceHeader({ name, saving, storage, online, onProjects, onShare, onSettings, settingsOpen }: { name: string; saving: string; storage: string; online: boolean; onProjects: () => void; onShare: () => void; onSettings: () => void; settingsOpen: boolean }) {
+  return <header className="topbar whiteboard-header">
+    <button className="icon-button home-button" onClick={onProjects} aria-label="Tus pizarras" title="Tus pizarras"><Icon name="home" size={22}/></button><span className="header-divider"/>
+    <button className="board-switch" onClick={onProjects} title="Abrir y organizar pizarras"><span>{name}</span><Icon name="chevron" size={16}/></button><span className="bridge-mark" title="Whiteboard Bridge">Bridge</span>
+    <span className="save-badge" title={storage}><Icon name={online ? 'check' : 'offline'} size={15}/>{online ? saving : 'Sin conexión'}</span>
+    <div className="header-actions"><WorkspaceTimer/><button className="share-button" onClick={onShare}><Icon name="share" size={22}/><span>Compartir</span></button><button className={`icon-button settings-trigger ${settingsOpen ? 'active' : ''}`} aria-label="Configuración" title="Configuración" aria-expanded={settingsOpen} onClick={onSettings}><Icon name="settings" size={23}/></button></div>
+  </header>;
+}
+
+export function FloatingTools({ tool, chooseTool, options, setOptions, undo, redo, canUndo, canRedo, image, importFile, templates, link, help, disabled }: { tool: Tool; chooseTool: (tool: Tool) => void; options: ToolOptions; setOptions: (options: ToolOptions) => void; undo: () => void; redo: () => void; canUndo: boolean; canRedo: boolean; image: () => void; importFile: () => void; templates: () => void; link: () => void; help: () => void; disabled: boolean }) {
+  const [palette, setPalette] = useState<Palette>(null);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setPalette(null); };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setPalette(null); };
+    document.addEventListener('pointerdown', outside); document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+  }, []);
+  const pick = (value: Tool) => { chooseTool(value); if (!inkTools.includes(value)) setPalette(null); };
+  const toggle = (value: Palette, next?: Tool) => { if (next) chooseTool(next); setPalette(palette === value ? null : value); };
+  function button(value: Tool, icon = value, title = TOOLS.find(t => t.id === value)?.title ?? value) { return <button key={value} className={`dock-button ${tool === value ? 'active' : ''}`} aria-label={title} title={title} aria-pressed={tool === value} onClick={() => { chooseTool(value); setPalette(null); }}><Icon name={icon} size={25}/></button>; }
+  return <div className="floating-tools" ref={root}>
+    {palette && <section className={`tool-popover floating-panel palette-${palette}`} aria-label={{ ink: 'Herramientas de dibujo', notes: 'Notas adhesivas', reactions: 'Reacciones', shapes: 'Figuras y conectores', more: 'Insertar contenido' }[palette]}>
+      <button className="icon-button palette-close" aria-label="Cerrar herramientas" onClick={() => setPalette(null)}><Icon name="close" size={19}/></button>
+      {palette === 'notes' && <><div className="note-palette">{NOTE_COLORS.map((color, i) => <button key={color} title={`Nota ${colorNames[i]}`} aria-label={`Nota ${colorNames[i]}`} aria-pressed={options.noteColor === color} className={options.noteColor === color ? 'selected' : ''} onClick={() => { setOptions({ ...options, noteColor: color }); chooseTool('sticky'); setPalette(null); }}><svg viewBox="0 0 28 28" width="27" height="27" aria-hidden="true"><path d="M4 3h20v15l-7 7H4z" fill={color} stroke="currentColor" strokeWidth="1.1"/><path d="M17 25v-7h7" fill="none" stroke="currentColor" strokeWidth="1.1"/></svg></button>)}</div><span className="palette-hint">Elige un color y haz clic en el lienzo.</span></>}
+      {palette === 'reactions' && <div className="reaction-palette">{['❤️', '⭐', '❓', '✅', '❌', '🔥', '🎉', '👍', '👏', '🙂', '😐', '😮', '😢', '😆'].map(emoji => <button key={emoji} aria-label={`Insertar reacción ${emoji}`} onClick={() => { setOptions({ ...options, reaction: emoji }); pick('reaction'); }}>{emoji}</button>)}</div>}
+      {palette === 'shapes' && <div className="shape-palette">{shapeTools.map(value => <button key={value} aria-label={TOOLS.find(t => t.id === value)!.title} title={TOOLS.find(t => t.id === value)!.title} aria-pressed={tool === value} className={tool === value ? 'selected' : ''} onClick={() => pick(value)}><Icon name={value} size={27}/></button>)}</div>}
+      {palette === 'ink' && <><div className="pen-tools">{inkTools.map(value => <button key={value} aria-label={TOOLS.find(t => t.id === value)!.title} title={TOOLS.find(t => t.id === value)!.title} aria-pressed={tool === value} className={tool === value ? 'selected' : ''} onClick={() => pick(value)}><Icon name={value} size={25}/></button>)}</div><div className="ink-colors">{['#242424', '#e5484d', '#2563eb', '#1f8b4c', '#9333ea', '#e8ad17'].map(color => <button key={color} style={{ background: color }} aria-label={`Color ${color}`} aria-pressed={options.color === color} onClick={() => setOptions({ ...options, color })}/>)}<input type="color" aria-label="Color de herramienta" value={options.color} onChange={e => setOptions({ ...options, color: e.target.value })}/></div><label className="pen-width">Grosor<select aria-label="Grosor de herramienta" value={options.width} onChange={e => setOptions({ ...options, width: Number(e.target.value) })}>{[1, 2, 3, 6, 12, 24].map(n => <option key={n} value={n}>{n} px</option>)}</select></label></>}
+      {palette === 'more' && <div className="insert-grid">{[{ icon: 'template', name: 'Plantillas', run: templates }, { icon: 'image', name: 'Imágenes', run: image }, { icon: 'link', name: 'Enlace o video', run: link }, { icon: 'upload', name: 'Importar archivo', run: importFile }, { icon: 'help', name: 'Atajos y ayuda', run: help }].map(item => <button key={item.name} disabled={disabled && item.icon === 'upload'} onClick={() => { item.run(); setPalette(null); }}><Icon name={item.icon} size={27}/><span>{item.name}</span></button>)}</div>}
+    </section>}
+    <div className="dock-history floating-panel"><button className="dock-button" aria-label="Deshacer" title="Deshacer · Ctrl Z" disabled={!canUndo} onClick={undo}><Icon name="undo" size={23}/></button><button className="dock-button redo-dock" aria-label="Rehacer" title="Rehacer · Ctrl Mayús Z" disabled={!canRedo} onClick={redo}><Icon name="redo" size={21}/></button></div>
+    <nav className="tool-dock floating-panel" aria-label="Herramientas de pizarra">
+      {button('select')}{button('hand')}
+      <button className={`dock-button ${inkTools.includes(tool) ? 'active' : ''}`} aria-label="Dibujar" title="Dibujar" aria-expanded={palette === 'ink'} onClick={() => toggle('ink', inkTools.includes(tool) ? tool : 'pen')}><Icon name="pen" size={26}/></button>
+      <button className={`dock-button ${tool === 'sticky' ? 'active' : ''}`} aria-label="Nota adhesiva" title="Notas adhesivas · N" aria-expanded={palette === 'notes'} onClick={() => toggle('notes', 'sticky')}><span className="gradient-note"/></button>
+      <button className={`dock-button ${tool === 'reaction' ? 'active' : ''}`} aria-label="Reacciones" title="Reacciones" aria-expanded={palette === 'reactions'} onClick={() => toggle('reactions')}><span className="heart-icon">♥</span></button>
+      <button className={`dock-button ${tool === 'comment' ? 'active' : ''}`} aria-label="Comentario local" title="Comentario local" onClick={() => { pick('comment'); }}><span className="comment-icon"/></button>
+      {button('text')}
+      <button className={`dock-button ${shapeTools.includes(tool) ? 'active' : ''}`} aria-label="Figuras" title="Figuras y conectores" aria-expanded={palette === 'shapes'} onClick={() => toggle('shapes')}><Icon name="shapes" size={26}/></button>
+      <button className="dock-button" aria-label="Más herramientas" title="Más herramientas" aria-expanded={palette === 'more'} onClick={() => toggle('more')}><Icon name="more" size={25}/></button>
+    </nav>
+  </div>;
+}
+
+export function SettingsMenu({ close, exportControl, background, properties, importFile, copyOptions, lab, help, toggleTheme, theme }: { close: () => void; exportControl: ReactNode; background: () => void; properties: () => void; importFile: () => void; copyOptions: () => void; lab: () => void; help: () => void; toggleTheme: () => void; theme: string }) {
+  return <section className="settings-menu floating-panel" aria-label="Configuración de pizarra"><div className="popover-heading"><strong>Configuración</strong><button className="icon-button" aria-label="Cerrar configuración" onClick={close}><Icon name="close" size={19}/></button></div>{exportControl}<button onClick={importFile} aria-label="Importar archivo"><Icon name="upload"/>Importar</button><hr/><button onClick={background}><Icon name="background"/>Formato del fondo</button><button onClick={properties} aria-label="Mostrar propiedades"><Icon name="layers"/>Propiedades y capas</button><button onClick={copyOptions}><Icon name="copy"/>Opciones de copia</button><button onClick={toggleTheme} aria-label="Cambiar tema"><Icon name={theme === 'dark' ? 'sun' : 'moon'}/>Tema {theme === 'dark' ? 'claro' : 'oscuro'}</button><hr/><button onClick={help}><Icon name="help"/>Ayuda</button><button onClick={lab} aria-label="Compatibility Lab"><Icon name="lab"/>Diagnóstico de portapapeles</button><small className="settings-version">Whiteboard Bridge · v0.4.0</small></section>;
+}
+
+const grids: { id: Board['background']['grid']; label: string }[] = [{ id: 'solid', label: 'Liso' }, { id: 'dot', label: 'Puntos' }, { id: 'square', label: 'Cuadrícula' }, { id: 'graph', label: 'Gráfico' }, { id: 'hybrid', label: 'Híbrido' }, { id: 'diamond', label: 'Rombos' }, { id: 'wide-rule', label: 'Renglón ancho' }, { id: 'triangle', label: 'Triángulos' }, { id: 'narrow-rule', label: 'Renglón estrecho' }];
+export function BackgroundPanel({ value, change, close }: { value: Board['background']; change: (background: Board['background']) => void; close: () => void }) {
+  return <aside className="background-panel floating-panel" aria-label="Formato del fondo"><div className="popover-heading"><button className="icon-button" aria-label="Cerrar formato del fondo" onClick={close}><Icon name="back"/></button><button className="icon-button" aria-label="Cerrar panel de fondo" onClick={close}><Icon name="close"/></button></div><h2>Formato del fondo</h2><h3>Color</h3><div className="background-colors">{['#fff1a6', '#ffe0cc', '#ffd6d6', '#e8d6f1', '#ceebf5', '#e6f3cd', '#ffffff', '#f2f2f2', '#d9d9d9', '#202020'].map(color => <button key={color} aria-label={`Fondo ${color}`} aria-pressed={value.color === color} className={value.color === color ? 'selected' : ''} onClick={() => change({ ...value, color })}><span style={{ background: color }}/></button>)}</div><h3>Cuadrícula</h3><div className="background-grids">{grids.map(grid => <button key={grid.id} aria-label={`Cuadrícula ${grid.label}`} aria-pressed={value.grid === grid.id} className={value.grid === grid.id ? 'selected' : ''} onClick={() => change({ ...value, grid: grid.id })}><span className={`grid-preview grid-${grid.id}`}/><span>{grid.label}</span></button>)}</div></aside>;
+}

@@ -1,3 +1,5 @@
+Actualización v0.4.0: el usuario informó que los formatos anteriores solo consiguieron pegar PNG en Microsoft. El adaptador nuevo genera HTML de objetos experimental y permite capturar muestras; aún no hay una ejecución autenticada de ese adaptador en Microsoft. Las filas sin evidencia continúan como no ejecutadas y no se aprueban automáticamente a partir de tests internos.
+
 # Matriz de interoperabilidad externa
 
 Estado al 16-10-2026. **No hay ejecuciones autenticadas en Microsoft Whiteboard en esta entrega.** Ninguna fila se marca aprobada por documentación, apariencia del editor o una transferencia Bridge→Bridge.

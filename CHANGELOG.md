@@ -1,5 +1,15 @@
 # Cambios
 
+## 0.4.0 · 2026-10-16
+
+- Entorno de trabajo adaptado a las capturas: lienzo completo, cabecera compacta, herramientas flotantes, paletas y zoom a la derecha.
+- Escritura directa con un clic, creación de notas vacías con foco, distinción entre clic y arrastre e historial por sesión de texto.
+- Fondo por documento con diez colores y nueve cuadrículas; lectura compatible de documentos anteriores.
+- Más figuras, reacciones editables, comentarios locales, plantillas, enlaces y temporizador.
+- Encoder experimental de contenedor HTML de Microsoft para notas, texto y siete figuras; no se declara probado en Microsoft autenticado.
+- Captura voluntaria de una muestra real de Whiteboard a JSON, sin insertar HTML ni enviar el portapapeles a un servidor.
+- Se conservan el formato WBRIDGE, las pizarras locales, respaldos, importación/exportación y la ruta Pages corregida.
+
 ## 0.3.1 · 2026-10-16
 
 - Ruta de GitHub Pages corregida a `/whiteboard_bridge/`, igual que el repositorio real.

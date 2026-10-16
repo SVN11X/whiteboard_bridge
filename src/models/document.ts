@@ -15,7 +15,7 @@ const base = z.object({
 const textProps = { text: z.string().max(20_000), fontSize: finite.min(8).max(300), textColor: color, align: z.enum(['left', 'center', 'right']) };
 const text = base.extend({ type: z.literal('text'), ...textProps });
 const sticky = base.extend({ type: z.literal('sticky'), ...textProps });
-const shape = base.extend({ type: z.literal('shape'), shape: z.enum(['rect', 'ellipse', 'triangle', 'diamond']), ...textProps });
+const shape = base.extend({ type: z.literal('shape'), shape: z.enum(['rect', 'ellipse', 'triangle', 'diamond', 'pentagon', 'parallelogram', 'arrow-shape', 'capsule']), ...textProps });
 const line = base.extend({ type: z.literal('line'), arrow: z.enum(['none', 'end', 'both']), fromId: id.nullable(), toId: id.nullable(), reversed: z.boolean(), startAtEnd: z.boolean().default(false) });
 const ink = base.extend({ type: z.literal('ink'), tool: z.enum(['pen', 'marker', 'highlighter']), points: z.array(z.object({ x: finite.min(0).max(1), y: finite.min(0).max(1), pressure: finite.min(0).max(1) })).min(1).max(10_000) });
 const image = base.extend({ type: z.literal('image'), dataUrl: z.string().max(8_000_000).regex(/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/), alt: z.string().max(500) });
@@ -25,11 +25,13 @@ export type BoardObject = z.infer<typeof objectSchema>;
 export type ObjectType = BoardObject['type'];
 export type Point = { x: number; y: number };
 export type Viewport = { x: number; y: number; zoom: number };
+export const backgroundSchema = z.object({ color, grid: z.enum(['solid', 'dot', 'square', 'graph', 'hybrid', 'diamond', 'wide-rule', 'triangle', 'narrow-rule']) });
 export const boardSchema = z.object({
   schema: z.literal('whiteboard-bridge'), version: z.literal(2), id,
   name: z.string().trim().min(1).max(120),
   createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
   viewport: z.object({ x: coordinate, y: coordinate, zoom: finite.min(0.05).max(8) }),
+  background: backgroundSchema.default({ color: '#ffffff', grid: 'dot' }),
   objects: z.array(objectSchema).max(MAX_OBJECTS),
 }).superRefine((board, ctx) => {
   const map = new Map(board.objects.map(o => [o.id, o]));
@@ -59,14 +61,14 @@ export type Board = z.infer<typeof boardSchema>;
 export const uid = () => crypto.randomUUID();
 export function createBoard(name = 'Pizarra sin título'): Board {
   const now = new Date().toISOString();
-  return { schema: 'whiteboard-bridge', version: 2, id: uid(), name, createdAt: now, updatedAt: now, viewport: { x: 0, y: 0, zoom: 1 }, objects: [] };
+  return { schema: 'whiteboard-bridge', version: 2, id: uid(), name, createdAt: now, updatedAt: now, viewport: { x: 0, y: 0, zoom: 1 }, background: { color: '#ffffff', grid: 'dot' }, objects: [] };
 }
 export function makeObject(type: ObjectType, p: Point, extra: Partial<BoardObject> = {}): BoardObject {
   const shared = { id: uid(), x: p.x, y: p.y, width: 200, height: 130, rotation: 0, zIndex: Date.now(), opacity: 1, locked: false, groupId: null, fill: '#dceae6', stroke: '#24574e', strokeWidth: 2, label: '' };
   const typography = { text: '', fontSize: 24, textColor: '#203a35', align: 'left' as const };
   const variants: Record<ObjectType, object> = {
-    text: { ...typography, width: 300, height: 80, text: 'Escribe tu idea', strokeWidth: 0 },
-    sticky: { ...typography, width: 220, height: 190, fill: '#f8df84', strokeWidth: 0, text: 'Una idea por aquí…' },
+    text: { ...typography, width: 300, height: 80, text: '', strokeWidth: 0 },
+    sticky: { ...typography, width: 200, height: 200, fill: '#ffe6a1', textColor: '#242424', strokeWidth: 0, text: '' },
     shape: { ...typography, shape: 'rect', align: 'center' },
     line: { height: 80, fill: '#24574e', arrow: 'end', fromId: null, toId: null, reversed: false, startAtEnd: false, strokeWidth: 3 },
     ink: { tool: 'pen', points: [{ x: 0, y: 0, pressure: 0.5 }], strokeWidth: 3 },

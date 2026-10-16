@@ -1,3 +1,5 @@
+Actualización v0.4.0: encoder HTML experimental implementado para notas, texto y figuras; la prioridad inmediata es obtener muestras y verificar el importador real de Microsoft. No se declara cerrado el objetivo de interoperabilidad nativa.
+
 # Próximos pasos
 
 | Prioridad | Trabajo | Condición observable de cierre |

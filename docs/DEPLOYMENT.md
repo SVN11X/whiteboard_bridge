@@ -7,17 +7,17 @@ Sitio: [`https://svn11x.github.io/whiteboard_bridge/`](https://svn11x.github.io/
 
 Comprobación del 16-10-2026 sobre el commit remoto `131d0140853d9f98c877299b1d508a10e9749d9e`: Pages estaba habilitado y el [último despliegue](https://github.com/SVN11X/whiteboard_bridge/actions/runs/38952109150) terminó correctamente. El HTML respondía 200, pero pedía JavaScript y CSS bajo `/whiteboard-bridge/`, que respondían 404. Los archivos existían bajo `/whiteboard_bridge/`.
 
-La versión 0.3.1 corrige `base` en `vite.config.ts` y `scripts/build-sw.mjs`, las URLs de Playwright y el enlace esperado al ejemplo. Los nombres del formato, base de datos y portapapeles conservan `whiteboard-bridge`; no son rutas web.
+La versión 0.3.1 corrigió `base` en `vite.config.ts` y `scripts/build-sw.mjs`, las URLs de Playwright y el enlace esperado al ejemplo. Los nombres del formato, base de datos y portapapeles conservan `whiteboard-bridge`; no son rutas web.
 
-## Aplicar el parche al repositorio existente
+## Actualizar el entorno a v0.4.0
 
-`FIX_GITHUB_PAGES.patch` se genera con `git format-patch` desde el commit remoto indicado. Descargar el parche fuera de la carpeta del repositorio. En PowerShell, con Git y Node.js 24:
+`WHITEBOARD_WORKSPACE_V0.4.0.patch` se genera con `git format-patch` desde el commit remoto `90b35df409d9fe86895dca908f7dc00dfe1a46d0`, que ya contiene la corrección de Pages v0.3.1. Descargar el parche fuera de la carpeta del repositorio. En PowerShell, con Git y Node.js 24:
 
 ```powershell
 git clone https://github.com/SVN11X/whiteboard_bridge.git
 cd whiteboard_bridge
-git switch -c fix/github-pages-path
-git am --3way ..\FIX_GITHUB_PAGES.patch
+git switch -c feature/whiteboard-workspace
+git am --3way ..\WHITEBOARD_WORKSPACE_V0.4.0.patch
 npm ci
 npm run check
 npx playwright install chromium
@@ -30,7 +30,7 @@ Para publicar la corrección revisada:
 
 ```powershell
 git switch main
-git merge --ff-only fix/github-pages-path
+git merge --ff-only feature/whiteboard-workspace
 git push origin main
 ```
 

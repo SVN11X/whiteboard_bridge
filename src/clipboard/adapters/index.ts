@@ -34,9 +34,4 @@ export const WebCustomAdapter = {
     return cloneObjects(board.objects, target.x - (bounds?.x ?? 0), target.y - (bounds?.y ?? 0));
   },
 };
-// Capability descriptor only. There is deliberately no fabricated native encoder.
-export const WhiteboardNativeAdapter = Object.freeze({
-  id: 'microsoft-whiteboard-native', available: false, status: 'unverified',
-  reason: 'No se ha validado un formato portable que Microsoft Whiteboard acepte como objetos nativos.',
-  evidenceRequired: ['Tipo nativo correcto', 'Propiedades editables', 'Objetos separados', 'Repetición en dos sesiones y navegadores'],
-});
+export { WhiteboardNativeAdapter } from '../whiteboard';

@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-10-16T20:32:56.016382+00:00",
+  "clientBuild": "26.10910.104",
+  "method": "Read-only analysis of public JavaScript assets; no Microsoft authentication or paste test. No Microsoft programs included in this repository.",
+  "observations": {
+    "htmlElement": "whiteboard-tag",
+    "attribute": "whiteboardcontent",
+    "encoding": "URI-encoded JSON",
+    "internalMime": "text/whiteboard",
+    "shapeTypeCodes": {
+      "rectangle": 4,
+      "ellipse": 34,
+      "triangle": 2,
+      "diamond": 5,
+      "pentagon": 9,
+      "parallelogram": 6,
+      "pill": 138
+    },
+    "importantLimit": "The current client recognizes the HTML envelope. The boardItems payload uses a historical clipboard example plus current template object properties. Acceptance by the current authenticated clipboard importer is not established."
+  },
+  "resources": [
+    {
+      "url": "https://whiteboard.cloud.microsoft/blueboard/chunks/36418.f2faa5d872fca7f84a28.js",
+      "bytes": 107427,
+      "sha256": "2e271052ad468682dfdd44534974a7bdba7ddd9a3bcae809ce85530d5c83e592"
+    },
+    {
+      "url": "https://whiteboard.cloud.microsoft/blueboard/chunks/30148.e70ec5c510df3f64f9b0.js",
+      "bytes": 60968,
+      "sha256": "f7096c2199048ea0a282b717721b54fce2abb70b7a760289f35ba106715bf9c9"
+    },
+    {
+      "url": "https://whiteboard.cloud.microsoft/blueboard/chunks/36893.60aa455776fc10a27841.js",
+      "bytes": 21030,
+      "sha256": "d6cd667d3f1358ff030b9649f62abf48d57941034f4b9ff42ebaecb3dc1a129c"
+    },
+    {
+      "url": "https://whiteboard.cloud.microsoft/blueboard/chunks/64790.c2ca9f55f998da113b7b.js",
+      "bytes": 17328,
+      "sha256": "f1bef8a9c71caf2182820c37afdc83b7c9e77cf7c0b0770202dfafb988fbb976"
+    }
+  ],
+  "browserCheck": "Microsoft Whiteboard redirected to its account sign-in page; no authenticated test performed.",
+  "userReport": "Previous Bridge formats did not paste as native editable Microsoft objects. PNG was the only reported working representation."
+}

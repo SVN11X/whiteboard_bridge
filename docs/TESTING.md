@@ -1,87 +1,57 @@
-# Validación ejecutada
+# Validación de v0.4.0
 
-Fecha: 16-10-2026. Corrección v0.3.1 sobre el repositorio remoto `SVN11X/whiteboard_bridge`, commit `131d0140853d9f98c877299b1d508a10e9749d9e`. Ejecutor Linux con Node 24.19.0, npm 11.9.0. Dependencias exactas en package-lock.json. La corrección se verifica localmente; no se ha publicado desde este entorno.
+Fecha: 16-10-2026. Base remota `90b35df409d9fe86895dca908f7dc00dfe1a46d0`. Ejecutor Linux, Node 24.19.0 y npm 11.9.0. Dependencias exactas sin cambios en package-lock.json.
 
 ## Comandos
 
 ```powershell
 npm ci
-npm run typecheck
-npm run lint
-npm test
-npm run build
+npm run check
 npx playwright install chromium
 npm run test:e2e
 ```
 
-En Linux limpio, `npx playwright install --with-deps chromium` instala también librerías del sistema. El workflow hace esa instalación.
+El workflow instala Chromium con sus dependencias. En este entorno se utiliza el binario auxiliar local con `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`, igual que en las entregas anteriores. No se incluye ese binario en el ZIP. Chromium automatizado no certifica una instalación física de Edge/Chrome Windows ni un stylus.
 
-En este entorno la descarga estándar de Playwright devolvió un ZIP incompleto. Para ejecutar las pruebas se utilizó un binario Chromium preparado localmente, indicando su ruta mediante `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. Ese binario auxiliar no forma parte de la aplicación ni del ZIP. El navegador manejado por Playwright informó user agent `Chrome/156.0.8078.4`; ese dato no certifica una instalación de Chrome/Edge Windows de un usuario real.
+## Resultado
 
-## Resultado final
-
-| Comprobación | Estado | Alcance |
+| Comprobación | Resultado | Alcance |
 | --- | --- | --- |
-| TypeScript estricto | Aprobado | Código, configuración y pruebas |
+| TypeScript | Aprobado | Aplicación, configuración y pruebas |
 | ESLint | Aprobado | Sin errores ni advertencias |
-| Vitest | Aprobado | 29 pruebas, 3 archivos |
-| Vite producción + SW + rutas Pages | Aprobado | Recursos compilados bajo `/whiteboard_bridge/`; archivos y precache comprobados |
-| Playwright | Aprobado | 13 pruebas, Chromium automatizado |
-| Test estático del legado | Aprobado | Se conserva ejecutable; no valida natividad |
-| Whiteboard Web/Teams real | No ejecutado | Requiere cuenta y comprobación manual externa |
-| Edge/Chrome en Windows y stylus físico | No ejecutado | No se extrapolan resultados del navegador automatizado |
-| Workflow y URL pública anteriores | Diagnóstico de solo lectura | Despliegue remoto exitoso; recursos con guion devuelven 404 y con guion bajo, 200 |
-| Nuevo despliegue de la corrección | Pendiente | Requiere registrar y subir la corrección a `main` |
+| Vitest | Aprobado | 35 pruebas en cuatro archivos |
+| Producción y PWA | Aprobado | Base `/whiteboard_bridge/`, cuatro enlaces y nueve recursos offline verificados |
+| Playwright | Aprobado | 21 pruebas sin reintentos ni fallos, 37,1 s; incluye medición de escenas |
+| Revisión visual | Ejecutada | Capturas sintéticas de escritorio, paneles y 360 px; se corrigen controles tapados |
+| Microsoft autenticado | No ejecutado | El navegador llegó al inicio de sesión; sin evidencia de pegado nativo |
+| Nuevo despliegue remoto | No ejecutado | Corrección entregada para registrar y subir |
 
-Evidencia de la suite E2E v0.3.1: [pages-fix-e2e.json](evidence/pages-fix-e2e.json). Diagnóstico remoto: [pages-diagnosis.json](evidence/pages-diagnosis.json). [e2e-results.json](evidence/e2e-results.json) conserva la ejecución anterior. Se incluyen resultados de datos sintéticos, sin capturas de sesiones ajenas.
+La evidencia final de E2E se guarda en `evidence/workspace-v0.4-e2e.json`. El diagnóstico del cliente público está en `evidence/whiteboard-client-observations.json`. Las ejecuciones v0.3.0/v0.3.1 se conservan como históricas en sus JSON anteriores.
 
-Se ejecutó también `scripts/check-pages.mjs` con `GITHUB_REPOSITORY=SVN11X/whiteboard_bridge` (aprobado) y con `SVN11X/otro_repositorio` (rechazo esperado por ruta incorrecta). Esto detecta el desajuste que el despliegue anterior no comprobaba.
+## Qué comprueban los casos nuevos
 
-## Qué verifican las pruebas
+- Una primera pizarra vacía y ausencia inicial de panel lateral.
+- Un clic para editar, Enter/F2, cancelación, saltos de línea, guardado y una sola transacción de undo por sesión.
+- Arrastre sin apertura accidental de escritura.
+- Fondo y cuadrícula que sobreviven a recarga y exportación WBRIDGE.
+- Controles esenciales y paletas dentro de 360, 820 y 1440 px.
+- Escritura/lectura real del contenedor HTML de datos sintéticos en el portapapeles de Chromium, sin PNG, y pegado editable dentro de Bridge.
+- Selección no compatible que deja intacto el portapapeles.
+- Captura de muestra sintética y descarga JSON sin insertar HTML activo.
+- Plantillas, enlaces y controles del temporizador.
 
-Actualización v0.3.0: round-trip `.wbridge` con grupos, conectores, tinta e imágenes; apertura como copia; exportación de selección con relaciones externas eliminadas; BOM UTF-8; nombres seguros; JSON anteriores; límites de tamaño y firma raster. En navegador se verificó archivo descargado y reimportado, edición tras recarga, conservación de la pizarra anterior, selección, Ctrl+S, botón Importar con imagen, rechazo de `.whiteboard`/archivos corruptos, arrastrar proyecto y guía responsive con ejemplo descargable.
+El round-trip sintético prueba nuestro serializador y la ruta del navegador. No ejecuta el parser de Microsoft, no prueba notas nativas en Whiteboard y no puede aprobar ese resultado. La captura de una muestra tampoco cambia automáticamente `verifiedInMicrosoft: false`.
 
+## Problemas detectados durante la revisión
 
-- Documento: round-trip exacto, migración del JSON v1, valores inválidos, IDs duplicados, imágenes activas y ciclos de grupo.
-- Geometría: zoom anclado al cursor, límites rotados, índice espacial con coordenadas negativas y objetos grandes, orientación de conectores.
-- Estado: agrupación, movimiento, duplicación, referencias nuevas, undo, bloqueo, desagrupación anidada y eliminación de ancestros vacíos.
-- Representación: texto escapado, palabras largas sin pérdida y rechazo de un resultado PNG como prueba de natividad.
-- IndexedDB: orden de escrituras, última edición, respaldo/restauración como copias, rechazo atómico de respaldo inválido y eliminación de versiones.
-- Navegador: creación, edición, duplicación, undo, JSON descargable y persistencia tras recargar; agrupación, bloqueo y zoom por teclado/panel; migración, rechazo de SVG y descarga PNG; Clipboard real con formato propio y pegado entre pestañas; puntero con resize/rotación/tinta/borrador; recarga offline y ausencia de solicitudes de contenido a otros orígenes; móvil 360 px; tema oscuro.
+La primera adaptación dejaba el zoom detrás del panel de propiedades y la barra de acciones se superponía al tirador de rotación. Se reubicaron los controles y la barra pasa debajo de objetos cercanos al borde superior. También se restauró el engranaje de configuración en móvil, ocultado por una regla anterior.
 
-Los tests de Clipboard usan permiso de lectura/escritura en un contexto de pruebas sintético. No equivalen a demostrar permisos en todos los perfiles o destinos. La comprobación móvil asegura distribución y ausencia de overflow; no certifica gestos en hardware táctil.
+Los fixtures de regresión ahora crean explícitamente su escena de ejemplo; el producto ya no abre ocho objetos de demostración al primer uso. Los tests acceden a exportación, importación, figuras e inspector mediante los nuevos menús.
 
-## Fallos encontrados y corregidos
+## Límites de las mediciones
 
-La primera suite detectó que `Vary: Origin` del servidor de preview hacía fallar el cache match del CSS/JS al recargar offline. El SW ahora resuelve por URL explícita del precache y permite ignorar Vary solo dentro de esa caché del mismo origen. La suite posterior recargó y editó sin conexión.
+La suite mantiene escenas de 100, 1.000 y 10.000 rectángulos. Los datos brutos de esta ejecución están en [workspace-v0.4-benchmark.json](evidence/workspace-v0.4-benchmark.json). No se extrapola a 10.000 imágenes o trazos densos ni a hardware Windows. El bundle principal conserva el aviso de Vite por superar 500 kB minificados; no se modifica el umbral para ocultarlo.
 
-Se corrigió el nombre accesible del botón del laboratorio, cuyo texto se oculta en móvil. También se ajustó una aserción que buscaba texto con espacios entre `tspan`: la nota estaba guardada, pero la representación divide sus líneas. Ahora se comprueba la etiqueta accesible completa del objeto y su recarga.
+Las capturas finales se incluyen en `evidence/workspace-v0.4-empty.png`, `workspace-v0.4-direct-edit.png`, `workspace-v0.4-background.png` y `workspace-v0.4-mobile.png`. La captura muestra objetos sintéticos locales, no evidencia del importador de Microsoft.
 
-## Medición de rendimiento de v0.3.0
-
-```powershell
-npm run build
-npm run benchmark
-```
-
-Datos brutos: [benchmark.json](evidence/benchmark.json). Figuras rectangulares simples distribuidas en una rejilla, viewport configurado 1440×900, tres tamaños de documento. El ensayo desplaza el viewport durante 120 frames y descarta los cinco primeros intervalos. Después mide un clic de zoom hasta que la UI confirma el valor.
-
-| Objetos en documento | Importación + comprobación (ms) | Zoom + comprobación (ms) | FPS medio al desplazar | Frame p95 (ms) | Heap JS vía CDP (MiB) | Objetos SVG al final |
-| --- | --- | --- | --- | --- | --- | --- |
-| 100 | 61 | 63 | 60,0 | 18,7 | 7,5 | 6 |
-| 1.000 | 113 | 85 | 60,0 | 18,4 | 23,4 | 42 |
-| 10.000 | 734 | 76 | 60,1 | 19,6 | 41,2 | 42 |
-
-Estas cifras son una ejecución automatizada, no una garantía de hardware ni un benchmark comparativo de librerías. El culling mantiene pocos objetos visibles. El tiempo de interacción incluye Playwright y la comprobación, no solo trabajo de render. El heap vía CDP no incluye toda la memoria del proceso, GPU o IndexedDB; puede incluir asignaciones aún no recolectadas. `performance.memory` también se registra, pero apareció cuantizado y no se usa como cifra principal.
-
-No se midieron 10.000 imágenes/trazos densos simultáneamente visibles ni precisión de presión física. No se afirman 60 FPS para esas cargas.
-
-## Revisión visual
-
-En v0.3.0 se inspeccionaron la barra con Importar/Exportar en escritorio y la guía de archivos a 360 px. La tabla conserva un ancho legible y ofrece desplazamiento horizontal con indicación visible y foco por teclado; se repitieron las cuatro pruebas de archivos tras ese ajuste de presentación.
-
-Se inspeccionaron capturas sintéticas de escritorio y móvil para localizar fallos. La suite verifica oscuro y diálogos adaptables. No se incluyen esas capturas como evidencia de Microsoft. La revisión completa con lector de pantalla y WCAG 2.2 AA sigue pendiente.
-
-## Aviso de compilación
-
-Vite informa que el bundle principal supera 500 kB minificados (aprox. 532 kB; 168 kB gzip). Es un aviso de tamaño, no un error. Se mantiene un paquete local autocontenido y la PWA lo precachea. La división en chunks y las escenas densas son mejoras de rendimiento futuras; no se oculta el aviso modificando artificialmente el umbral.
+Tras la suite completa se movió el aviso de estado a la parte superior en pantallas estrechas para no cubrir los colores. Se repitió el caso de layout en 360, 820 y 1440 px, incluyendo una comprobación de que aviso y paleta no se superponen: aprobado. Evidencia en `evidence/workspace-v0.4-layout-final.json`. No hubo cambios funcionales posteriores.
