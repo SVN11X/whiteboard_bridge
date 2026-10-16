@@ -1,0 +1,12 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+coverage/
+*.log
+.DS_Store
+private-captures/
+
+# Release-only files shipped in ZIP archives
+UPGRADE_FROM_*.patch
+RELEASE.json

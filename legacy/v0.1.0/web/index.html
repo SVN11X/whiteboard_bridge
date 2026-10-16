@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Whiteboard Bridge Lab · Prototipo de interoperabilidad</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-icon">✳</span><div><strong>Whiteboard Bridge <span class="muted">Lab</span></strong><small>Editor y laboratorio de interoperabilidad · v0.1.0</small></div></div>
+    <div class="top-actions"><span class="tag">100 % local</span><a href="https://whiteboard.office.com/" target="_blank" rel="noreferrer">Abrir Microsoft Whiteboard ↗</a></div>
+  </header>
+  <main class="layout">
+    <aside class="left-pane">
+      <h2>Crear objetos</h2>
+      <p class="hint">Selecciona, arrastra y modifica los objetos del lienzo.</p>
+      <div class="tools">
+        <button data-add="text">T <span>Texto</span></button>
+        <button data-add="note">▧ <span>Nota adhesiva</span></button>
+        <button data-add="rect">▭ <span>Rectángulo</span></button>
+        <button data-add="ellipse">◯ <span>Elipse</span></button>
+        <button data-add="arrow">➜ <span>Flecha</span></button>
+      </div>
+      <hr>
+      <h2>Objeto seleccionado</h2>
+      <div id="editor-empty" class="hint">Selecciona un objeto para editarlo.</div>
+      <div id="editor" hidden>
+        <label>Tipo <span id="type-label"></span></label>
+        <label for="text-value">Contenido</label><textarea id="text-value" rows="4" maxlength="2000"></textarea>
+        <label for="color-value">Color</label><input type="color" id="color-value" value="#facc15">
+        <div class="two-cols"><div><label for="pos-x">X</label><input id="pos-x" type="number" step="1"></div><div><label for="pos-y">Y</label><input id="pos-y" type="number" step="1"></div></div>
+        <button class="danger outline full" id="delete-selected">Eliminar selección</button>
+      </div>
+      <hr>
+      <h2>Objetos del lienzo</h2>
+      <div id="object-list" class="object-list"></div>
+      <button class="outline full" id="export-board">Exportar proyecto (.json)</button>
+      <label class="import-label" for="import-board">Importar proyecto (.json)</label>
+      <input id="import-board" type="file" accept="application/json,.json" hidden>
+    </aside>
+    <section class="center-pane" aria-label="Editor de Whiteboard Bridge">
+      <div class="canvas-bar"><span>LIENZO DE PRUEBAS</span><span>Mayús + clic: selección múltiple · Arrastrar: mover · Supr: borrar</span></div>
+      <div class="canvas-viewport"><svg id="board" xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-label="Lienzo con objetos editables"></svg></div>
+      <div class="canvas-footer"><span id="board-count">0 objetos</span><span>Proyecto local sin conexión a Microsoft</span></div>
+    </section>
+    <aside class="right-pane">
+      <h2>Transferencia al original</h2>
+      <p class="hint">Copia desde este prototipo, cambia a Whiteboard Web o Teams y pulsa Ctrl + V. Comprueba cómo queda el objeto.</p>
+      <label for="copy-mode">Formato experimental</label>
+      <select id="copy-mode">
+        <option value="plain">Texto plano</option>
+        <option value="html">HTML + texto</option>
+        <option value="mixed">Mixto: texto + HTML + PNG + web JSON</option>
+        <option value="png">PNG (control visual, no editable como forma)</option>
+        <option value="custom">Web JSON + HTML + texto</option>
+      </select>
+      <button class="primary full" id="copy-selection">Copiar selección</button>
+      <small class="note">Los formatos experimentales no implican que Whiteboard los interprete como objetos nativos.</small>
+      <hr>
+      <h2>Diagnóstico de portapapeles</h2>
+      <button class="outline full" id="inspect-clipboard">Inspeccionar tipos disponibles</button>
+      <div id="clipboard-results" class="results" aria-live="polite">Aún no se ha inspeccionado.</div>
+      <small class="note">El navegador puede ocultar formatos nativos. Para enumerarlos todos, usa el analizador de Windows de la carpeta <code>windows/</code>.</small>
+      <hr>
+      <h2>Registrar prueba real</h2>
+      <label for="test-object">Tipo probado</label>
+      <select id="test-object"><option value="text">Texto</option><option value="note">Nota adhesiva</option><option value="rect">Rectángulo</option><option value="ellipse">Elipse</option><option value="arrow">Flecha</option><option value="group">Grupo</option></select>
+      <label for="test-status">Resultado observado en Whiteboard</label>
+      <select id="test-status">
+        <option value="not-pasted">No se pegó</option>
+        <option value="image">Se pegó como imagen (no nativo)</option>
+        <option value="text-only">Se pegó como texto (perdió su tipo)</option>
+        <option value="editable-native">Editable con el tipo correcto</option>
+        <option value="partial">Parcial / incierto</option>
+      </select>
+      <label for="test-note">Observaciones</label>
+      <textarea id="test-note" rows="2" placeholder="Ej.: conserva fondo pero no tamaño"></textarea>
+      <button class="outline full" id="record-test">Registrar resultado</button>
+      <button class="outline full" id="export-results">Descargar reporte (.json)</button>
+      <div id="test-count" class="hint">0 pruebas registradas</div>
+      <hr>
+      <h2>Estado</h2>
+      <div id="status" class="results status" aria-live="polite">Listo para probar.</div>
+    </aside>
+  </main>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Capturas y resultados locales
+*.bin
+*captura*.json
+*resultados*.json
+*proyecto*.json
+*.log
+.DS_Store
