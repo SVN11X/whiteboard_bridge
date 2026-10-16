@@ -1,6 +1,6 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-const base = '/whiteboard-bridge/';
+const base = '/whiteboard_bridge/';
 async function walk(dir) { const out = []; for (const item of await readdir(dir, { withFileTypes: true })) { const path = `${dir}/${item.name}`; if (item.isDirectory()) out.push(...await walk(path)); else if (item.name !== 'sw.js') out.push(path); } return out; }
 const files = (await walk('dist')).sort();
 const hash = createHash('sha256'); for (const file of files) hash.update(await readFile(file));

@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-16T19:18:23.284504+00:00",
+  "repository": "SVN11X/whiteboard_bridge",
+  "baseCommit": "131d0140853d9f98c877299b1d508a10e9749d9e",
+  "remoteMain": "131d0140853d9f98c877299b1d508a10e9749d9e\trefs/heads/main",
+  "checks": [
+    {
+      "url": "https://svn11x.github.io/whiteboard_bridge/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "html": "<!doctype html>\n<html lang=\"es\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <meta name=\"theme-color\" content=\"#1e4843\" />\n    <meta name=\"description\" content=\"Una pizarra local para pensar, dibujar y explorar el intercambio con Microsoft Whiteboard.\" />\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'\" />\n    <link rel=\"icon\" href=\"/whiteboard-bridge/icons/bridge.svg\" type=\"image/svg+xml\" />\n    <link rel=\"manifest\" href=\"/whiteboard-bridge/manifest.webmanifest\" />\n    <title>Whiteboard Bridge</title>\n    <script type=\"module\" crossorigin src=\"/whiteboard-bridge/assets/index-BS4ETN_Q.js\"></script>\n    <link rel=\"stylesheet\" crossorigin href=\"/whiteboard-bridge/assets/index-DpCu8N3q.css\">\n  </head>\n  <body><div id=\"root\"></div><noscript>Whiteboard Bridge necesita JavaScript para editar. Tus proyectos se guardan en este navegador.</noscript></body>\n</html>\n"
+    },
+    {
+      "url": "https://svn11x.github.io/whiteboard-bridge/assets/index-BS4ETN_Q.js",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "url": "https://svn11x.github.io/whiteboard_bridge/assets/index-BS4ETN_Q.js",
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "url": "https://svn11x.github.io/whiteboard-bridge/assets/index-DpCu8N3q.css",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "url": "https://svn11x.github.io/whiteboard_bridge/assets/index-DpCu8N3q.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8"
+    }
+  ],
+  "note": "Read-only public HTTP checks before applying the fix. Corrected source has only been verified locally."
+}

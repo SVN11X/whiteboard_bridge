@@ -41,6 +41,6 @@ test('arrastra un proyecto al lienzo y muestra la guía de formatos a 360 px', a
   await page.setViewportSize({ width: 360, height: 800 }); await expect(page.getByRole('button', { name: 'Importar archivo', exact: true })).toBeVisible(); expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(360);
   await page.locator('.export-menu summary').click(); await page.getByRole('button', { name: 'Formatos y ayuda', exact: true }).click(); await expect(page.getByRole('dialog', { name: 'Importar y exportar' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Importar y exportar', exact: true })).toBeInViewport();
-  await expect(page.getByRole('link', { name: /Descargar ejemplo/ })).toHaveAttribute('href', '/whiteboard-bridge/examples/primer-proyecto.wbridge'); expect(await page.getByRole('dialog').evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
+  await expect(page.getByRole('link', { name: /Descargar ejemplo/ })).toHaveAttribute('href', '/whiteboard_bridge/examples/primer-proyecto.wbridge'); expect(await page.getByRole('dialog').evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
   const sample = await page.request.get('examples/primer-proyecto.wbridge'); expect(sample.ok()).toBe(true); expect((await sample.json()).schema).toBe('whiteboard-bridge');
 });

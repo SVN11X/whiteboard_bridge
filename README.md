@@ -1,4 +1,4 @@
-# Whiteboard Bridge · v0.3.0
+# Whiteboard Bridge · v0.3.1
 
 Pizarra web local y laboratorio de interoperabilidad, preparada para **GitHub Pages**. Interfaz en español, React + TypeScript, sin cuenta, backend, claves ni bibliotecas desde CDN. Los objetos se editan y conservan dentro de Bridge.
 
@@ -22,29 +22,29 @@ La especificación, límites y comportamiento de grupos están en [FILE_FORMAT.m
 Se requiere Node.js 24 LTS (o una versión compatible >=22.12) y npm para compilar. Los visitantes del sitio publicado solo necesitan un navegador.
 
 ```powershell
-cd whiteboard-bridge
+cd whiteboard_bridge
 npm ci
 npm run dev
 ```
 
-Abrir `http://127.0.0.1:5173/whiteboard-bridge/`. Usar localhost o HTTPS; abrir `index.html` con doble clic no ejecuta correctamente una aplicación de módulos.
+Abrir `http://127.0.0.1:5173/whiteboard_bridge/`. Usar localhost o HTTPS; abrir `index.html` con doble clic no ejecuta correctamente una aplicación de módulos.
 
 ```powershell
 npm run check
 npm run preview
 ```
 
-Vista de producción: `http://127.0.0.1:4173/whiteboard-bridge/`. `npm run check` comprueba tipos, lint, 29 pruebas unitarias/integración y compilación. Las pruebas adicionales se describen en [TESTING.md](docs/TESTING.md).
+Vista de producción: `http://127.0.0.1:4173/whiteboard_bridge/`. `npm run check` comprueba tipos, lint, 29 pruebas unitarias/integración y compilación, incluidas las rutas y recursos de Pages. Las pruebas adicionales se describen en [TESTING.md](docs/TESTING.md).
 
 ## Publicar en GitHub Pages
 
-1. Crear el repositorio público `SVN11X/whiteboard-bridge`, rama `main`.
-2. Subir **el contenido de esta carpeta**, incluyendo `.github/workflows/deploy.yml` y `package-lock.json`. No subir `node_modules`.
-3. En **Settings → Pages → Build and deployment → Source**, elegir **GitHub Actions**.
-4. Hacer push a `main` o ejecutar el workflow. Este compila y publica exclusivamente `dist/` después de pasar las comprobaciones.
-5. Abrir `https://svn11x.github.io/whiteboard-bridge/` cuando GitHub confirme el despliegue.
+1. Usar el repositorio existente [`SVN11X/whiteboard_bridge`](https://github.com/SVN11X/whiteboard_bridge), rama `main`.
+2. Aplicar la corrección en una copia local del repositorio. Conservar `.github/workflows/deploy.yml` y `package-lock.json`. No subir `node_modules`.
+3. Pages ya está habilitado. Para una instalación nueva, elegir **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+4. Hacer push a `main`. El workflow compila y publica exclusivamente `dist/` después de pasar las comprobaciones.
+5. Abrir [`https://svn11x.github.io/whiteboard_bridge/`](https://svn11x.github.io/whiteboard_bridge/) cuando GitHub confirme el despliegue.
 
-Esta entrega **no está publicada**. La base `/whiteboard-bridge/` ya está configurada. Ver [DEPLOYMENT.md](docs/DEPLOYMENT.md) si se cambia el nombre.
+La versión 0.3.1 corrige la base a `/whiteboard_bridge/`. La configuración anterior usaba un guion y provocaba errores 404 al cargar JavaScript y CSS, aunque el despliegue terminara correctamente. `npm run build` comprueba las rutas generadas contra `GITHUB_REPOSITORY` en Actions. Ver [DEPLOYMENT.md](docs/DEPLOYMENT.md) para aplicar el parche o cambiar el nombre.
 
 ## Uso
 

@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.3.1 · 2026-10-16
+
+- Ruta de GitHub Pages corregida a `/whiteboard_bridge/`, igual que el repositorio real.
+- Service worker, enlaces y pruebas de navegador ajustados al mismo subdirectorio.
+- La compilación comprueba las rutas y los recursos generados contra `GITHUB_REPOSITORY` para evitar desplegar una página con archivos inexistentes.
+- Instrucciones de actualización sobre el repositorio existente, con parche desde su commit `131d014`.
+
 ## 0.3.0 · 2026-10-16
 
 - Formato editable `.wbridge`, con especificación JSON versionada y recursos embebidos.

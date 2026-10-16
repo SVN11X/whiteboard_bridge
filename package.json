@@ -1,7 +1,7 @@
 {
   "name": "whiteboard-bridge",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "Editor local de pizarras y laboratorio verificable de portapapeles",
   "engines": {
@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests scripts --max-warnings=0",
     "test": "vitest run",
-    "build": "tsc --noEmit && vite build && node scripts/build-sw.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/build-sw.mjs && node scripts/check-pages.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test:e2e": "playwright test",
     "benchmark": "playwright test tests/e2e/performance.spec.ts --workers=1",

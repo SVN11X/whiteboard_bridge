@@ -1,6 +1,6 @@
 # Validación ejecutada
 
-Fecha: 16-10-2026. Proyecto base recibido en ZIP, sin publicación remota. Ejecutor Linux con Node 24.19.0, npm 11.9.0. Dependencias exactas en package-lock.json.
+Fecha: 16-10-2026. Corrección v0.3.1 sobre el repositorio remoto `SVN11X/whiteboard_bridge`, commit `131d0140853d9f98c877299b1d508a10e9749d9e`. Ejecutor Linux con Node 24.19.0, npm 11.9.0. Dependencias exactas en package-lock.json. La corrección se verifica localmente; no se ha publicado desde este entorno.
 
 ## Comandos
 
@@ -25,14 +25,17 @@ En este entorno la descarga estándar de Playwright devolvió un ZIP incompleto.
 | TypeScript estricto | Aprobado | Código, configuración y pruebas |
 | ESLint | Aprobado | Sin errores ni advertencias |
 | Vitest | Aprobado | 29 pruebas, 3 archivos |
-| Vite producción + SW | Aprobado | Recursos compilados bajo `/whiteboard-bridge/` |
+| Vite producción + SW + rutas Pages | Aprobado | Recursos compilados bajo `/whiteboard_bridge/`; archivos y precache comprobados |
 | Playwright | Aprobado | 13 pruebas, Chromium automatizado |
 | Test estático del legado | Aprobado | Se conserva ejecutable; no valida natividad |
 | Whiteboard Web/Teams real | No ejecutado | Requiere cuenta y comprobación manual externa |
 | Edge/Chrome en Windows y stylus físico | No ejecutado | No se extrapolan resultados del navegador automatizado |
-| Workflow en GitHub / URL pública | No ejecutado | Preparado; no existe evidencia de publicación |
+| Workflow y URL pública anteriores | Diagnóstico de solo lectura | Despliegue remoto exitoso; recursos con guion devuelven 404 y con guion bajo, 200 |
+| Nuevo despliegue de la corrección | Pendiente | Requiere registrar y subir la corrección a `main` |
 
-Evidencia de la última suite E2E: [e2e-results.json](evidence/e2e-results.json). Se incluyen resultados de datos sintéticos, sin capturas de sesiones ajenas.
+Evidencia de la suite E2E v0.3.1: [pages-fix-e2e.json](evidence/pages-fix-e2e.json). Diagnóstico remoto: [pages-diagnosis.json](evidence/pages-diagnosis.json). [e2e-results.json](evidence/e2e-results.json) conserva la ejecución anterior. Se incluyen resultados de datos sintéticos, sin capturas de sesiones ajenas.
+
+Se ejecutó también `scripts/check-pages.mjs` con `GITHUB_REPOSITORY=SVN11X/whiteboard_bridge` (aprobado) y con `SVN11X/otro_repositorio` (rechazo esperado por ruta incorrecta). Esto detecta el desajuste que el despliegue anterior no comprobaba.
 
 ## Qué verifican las pruebas
 
@@ -54,7 +57,7 @@ La primera suite detectó que `Vary: Origin` del servidor de preview hacía fall
 
 Se corrigió el nombre accesible del botón del laboratorio, cuyo texto se oculta en móvil. También se ajustó una aserción que buscaba texto con espacios entre `tspan`: la nota estaba guardada, pero la representación divide sus líneas. Ahora se comprueba la etiqueta accesible completa del objeto y su recarga.
 
-## Medición de rendimiento
+## Medición de rendimiento de v0.3.0
 
 ```powershell
 npm run build

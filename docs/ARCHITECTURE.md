@@ -15,6 +15,7 @@
 | `src/persistence/` | IndexedDB con Dexie, cola de escritura, versiones y respaldo |
 | `src/components/` | Paneles accesibles, proyectos, laboratorio y diálogos |
 | `scripts/build-sw.mjs` | Precache del paquete estático con hash de contenido |
+| `scripts/check-pages.mjs` | Verifica rutas y recursos generados contra el nombre del repositorio de Pages |
 
 El documento no depende de Microsoft. El descriptor `WhiteboardNativeAdapter` no tiene encoder y está desactivado: expresa la capacidad pendiente y sus criterios, sin fingir una integración.
 

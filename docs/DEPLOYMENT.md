@@ -1,64 +1,55 @@
 # Publicación en GitHub Pages
 
-Destino previsto, aún no publicado: `https://svn11x.github.io/whiteboard-bridge/`.
+Repositorio: [`SVN11X/whiteboard_bridge`](https://github.com/SVN11X/whiteboard_bridge).
+Sitio: [`https://svn11x.github.io/whiteboard_bridge/`](https://svn11x.github.io/whiteboard_bridge/).
 
-## Desde PowerShell
+## Causa de la página vacía y corrección
 
-Crear primero el repositorio vacío `whiteboard-bridge` en GitHub. Descomprimir el proyecto y abrir PowerShell en su raíz (donde está `package.json`).
+Comprobación del 16-10-2026 sobre el commit remoto `131d0140853d9f98c877299b1d508a10e9749d9e`: Pages estaba habilitado y el [último despliegue](https://github.com/SVN11X/whiteboard_bridge/actions/runs/38952109150) terminó correctamente. El HTML respondía 200, pero pedía JavaScript y CSS bajo `/whiteboard-bridge/`, que respondían 404. Los archivos existían bajo `/whiteboard_bridge/`.
+
+La versión 0.3.1 corrige `base` en `vite.config.ts` y `scripts/build-sw.mjs`, las URLs de Playwright y el enlace esperado al ejemplo. Los nombres del formato, base de datos y portapapeles conservan `whiteboard-bridge`; no son rutas web.
+
+## Aplicar el parche al repositorio existente
+
+`FIX_GITHUB_PAGES.patch` se genera con `git format-patch` desde el commit remoto indicado. Descargar el parche fuera de la carpeta del repositorio. En PowerShell, con Git y Node.js 24:
 
 ```powershell
+git clone https://github.com/SVN11X/whiteboard_bridge.git
+cd whiteboard_bridge
+git switch -c fix/github-pages-path
+git am --3way ..\FIX_GITHUB_PAGES.patch
 npm ci
 npm run check
 npx playwright install chromium
 npm run test:e2e
-git init -b main
-git add .
-git commit -m "Implement Whiteboard Bridge web editor and Compatibility Lab"
-git remote add origin https://github.com/SVN11X/whiteboard-bridge.git
-git push -u origin main
 ```
 
-No usar `git init` de nuevo si ya existe un repositorio. No es necesario subir `dist`, `node_modules`, capturas privadas ni resultados transitorios de Playwright. El ZIP incluye una copia de `dist` para inspección de la salida compilada; el workflow la reconstruye.
+Si ya existe una copia local, actualizarla y crear la rama desde `main`, conservando los cambios propios. No es necesario repetir `git clone` ni `git init`. Si la base difiere, revisar y resolver las diferencias antes de continuar.
 
-En GitHub, **Settings → Pages → Source: GitHub Actions**. Revisar **Actions → Verify and deploy Whiteboard Bridge**. Un workflow verde con job `deploy` terminado proporciona la URL publicada. Si Pages no está habilitado, `configure-pages` puede fallar hasta configurar esa opción. La ejecución del workflow remoto no se realizó en esta entrega.
-
-## Workflow
-
-`deploy.yml` usa Node 24, `npm ci`, TypeScript, ESLint, Vitest, build y Playwright. Solo publica después de esas comprobaciones. Los pull requests verifican sin desplegar. El job de despliegue recibe `pages:write` e `id-token:write`; el de compilación solo `contents:read`.
-
-Versiones oficiales consultadas el 16-10-2026:
-
-| Acción | Versión fijada |
-| --- | --- |
-| actions/checkout | v7.0.1 |
-| actions/setup-node | v7.1.0 |
-| actions/configure-pages | v6.0.0 |
-| actions/upload-pages-artifact | v5.0.0 |
-| actions/deploy-pages | v5.0.1 |
-
-Fuentes: página de `releases/latest` de cada [checkout](https://github.com/actions/checkout/releases/latest), [setup-node](https://github.com/actions/setup-node/releases/latest), [configure-pages](https://github.com/actions/configure-pages/releases/latest), [upload-pages-artifact](https://github.com/actions/upload-pages-artifact/releases/latest), [deploy-pages](https://github.com/actions/deploy-pages/releases/latest).
-
-## Ruta base
-
-La salida es estática: HTML con módulos JavaScript compilados y CSS locales. No requiere Node en producción. No hay router con rutas profundas; todos los diálogos conservan `/whiteboard-bridge/`. La recarga de la ruta raíz funciona con los archivos estáticos normales.
-
-Para cambiar el nombre del repositorio se deben modificar **ambos** `vite.config.ts` (`base`) y `scripts/build-sw.mjs` (`base`). El manifiesto usa rutas relativas. Volver a compilar y comprobar el service worker desde el nuevo subdirectorio. No reutilizar un SW de un directorio superior con scope global.
-
-## Comprobar al publicar
-
-Abrir la URL con HTTPS; verificar JS/CSS en Network, creación y recarga de una nota, exportación/importación, copia con interacción, manifiesto y registro de SW bajo `/whiteboard-bridge/`. Cerrar otras pestañas de la misma pizarra durante la primera prueba. Después de que el SW termine de instalar, cortar conexión y recargar: la interfaz debe recuperar el documento local.
-
-Los permisos Clipboard pueden depender del navegador y la organización. Un bloqueo de permisos no indica un error de la ruta de GitHub Pages. La PWA requiere primero una carga completa y que el navegador permita su caché.
-
-## Parche de actualización
-
-La entrega incluye `UPGRADE_FROM_V0.2.0.patch`, generado con `git format-patch` sobre el código fuente de la entrega v0.2.0 (`b64602d6b89e455a81532f20949bac793b4d4dd8`). No presupone un commit remoto de SVN11X.
-
-Si se tiene una copia idéntica de la entrega v0.2.0 en un repositorio limpio:
+Para publicar la corrección revisada:
 
 ```powershell
-git switch -c upgrade/bridge-v0.3.0
-git am --3way .\UPGRADE_FROM_V0.2.0.patch
+git switch main
+git merge --ff-only fix/github-pages-path
+git push origin main
 ```
 
-El parche agrega el formato `.wbridge`, la importación/exportación visible y sus pruebas. Conserva el legado y el inspector Windows. Si la base local difiere, usar el ZIP completo o resolver las diferencias; no aplicar sobre cambios ajenos sin revisarlos.
+El ZIP completo es otra forma de obtener los archivos corregidos: copiar su contenido a la raíz del repositorio, sin sustituir `.git`, y registrar los cambios. `dist/` se incluye para inspección; Actions lo reconstruye. No se deben subir `node_modules`, capturas privadas ni resultados transitorios de Playwright.
+
+## Workflow y ruta base
+
+Pages ya está habilitado en este repositorio. El workflow `.github/workflows/deploy.yml` se ejecuta al hacer push a `main`. Usa Node 24, `npm ci`, TypeScript, ESLint, Vitest, build y Playwright, y publica `dist/` después de esas comprobaciones. Los pull requests verifican sin desplegar. El despliegue recibe `pages:write` e `id-token:write`; la compilación solo `contents:read`.
+
+Para una instalación nueva, seleccionar **Settings → Pages → Build and deployment → Source: GitHub Actions**. Revisar **Actions → Verify and deploy Whiteboard Bridge**, incluido el job `deploy`.
+
+La salida es estática: HTML con módulos JavaScript y CSS locales. No requiere Node en producción. No hay rutas profundas; la aplicación permanece bajo `/whiteboard_bridge/`. La recarga de la ruta raíz funciona con archivos estáticos normales.
+
+Si se cambia el nombre del repositorio, ajustar `vite.config.ts` y `scripts/build-sw.mjs`, las dos URLs de `playwright.config.ts` y el enlace esperado en `tests/e2e/files.spec.ts`. Cambiar también el repositorio local predeterminado en `scripts/check-pages.mjs`. El manifiesto usa rutas relativas. No reutilizar un service worker de un directorio superior con scope global.
+
+`npm run build` verifica que los enlaces del HTML y el manifiesto existen dentro de `dist/`, que la ruta coincide con `GITHUB_REPOSITORY` y que el service worker precarga el mismo subdirectorio y el ejemplo editable. Un nombre de repositorio diferente detiene la compilación con un error explicativo. En local, el repositorio predeterminado es `SVN11X/whiteboard_bridge`.
+
+## Comprobar después de publicar
+
+Abrir el sitio con HTTPS y comprobar que JavaScript, CSS, manifiesto y `sw.js` responden 200 bajo `/whiteboard_bridge/`. Crear y recargar una nota, importar/exportar una pizarra y descargar el ejemplo de formatos. Después de que termine de instalarse el service worker, cortar la conexión y recargar: la interfaz debe recuperar el documento local.
+
+Si una pestaña conserva la versión anterior, recargar con Ctrl+F5 o usar **Guardar y actualizar** cuando se ofrezca. Evitar borrar los datos del sitio, pues contienen las pizarras locales. Un bloqueo del portapapeles depende del navegador o sus permisos y no indica un error de la ruta de Pages.
