@@ -1,57 +1,47 @@
-# Validación de v0.4.0
+# Validación de v0.4.1
 
-Fecha: 16-10-2026. Base remota `90b35df409d9fe86895dca908f7dc00dfe1a46d0`. Ejecutor Linux, Node 24.19.0 y npm 11.9.0. Dependencias exactas sin cambios en package-lock.json.
+Fecha: 16-10-2026. Base remota `c42b4410e9cb7975df6f80155e13579c20479dd7`. Ejecutor Linux con Node 24.19.0 y npm 11.9.0. No se añaden ni actualizan dependencias.
 
 ## Comandos
 
-```powershell
+```bash
 npm ci
 npm run check
-npx playwright install chromium
 npm run test:e2e
 ```
 
-El workflow instala Chromium con sus dependencias. En este entorno se utiliza el binario auxiliar local con `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`, igual que en las entregas anteriores. No se incluye ese binario en el ZIP. Chromium automatizado no certifica una instalación física de Edge/Chrome Windows ni un stylus.
+En este entorno se utiliza Chromium con `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`; el workflow instala su propio navegador. El binario auxiliar y las dependencias no forman parte de la entrega.
 
-## Resultado
+## Resultados
 
-| Comprobación | Resultado | Alcance |
-| --- | --- | --- |
-| TypeScript | Aprobado | Aplicación, configuración y pruebas |
-| ESLint | Aprobado | Sin errores ni advertencias |
-| Vitest | Aprobado | 35 pruebas en cuatro archivos |
-| Producción y PWA | Aprobado | Base `/whiteboard_bridge/`, cuatro enlaces y nueve recursos offline verificados |
-| Playwright | Aprobado | 21 pruebas sin reintentos ni fallos, 37,1 s; incluye medición de escenas |
-| Revisión visual | Ejecutada | Capturas sintéticas de escritorio, paneles y 360 px; se corrigen controles tapados |
-| Microsoft autenticado | No ejecutado | El navegador llegó al inicio de sesión; sin evidencia de pegado nativo |
-| Nuevo despliegue remoto | No ejecutado | Corrección entregada para registrar y subir |
+| Comprobación | Resultado |
+| --- | --- |
+| TypeScript y ESLint | Aprobados, sin errores ni advertencias de lint |
+| Vitest | 40 pruebas en cuatro archivos |
+| Compilación, PWA y rutas | Base `/whiteboard_bridge/`, cuatro enlaces y nueve recursos offline válidos |
+| Playwright completo | 25 pruebas aprobadas sin reintentos, 42,6 s |
+| Casos finales después de la revisión | 5 aprobados sin reintentos, 6,0 s |
+| Revisión visual | Escritorio 1440 px, tableta 820 px y móvil 360 px; barras blancas/personalizadas, puntos de conexión y PNG |
+| Microsoft Whiteboard | El usuario confirmó el pegado de v0.4.0; no se atribuye a una prueba automatizada autenticada |
+| Publicación remota | No realizada; se entrega el parche para incorporar al repositorio |
 
-La evidencia final de E2E se guarda en `evidence/workspace-v0.4-e2e.json`. El diagnóstico del cliente público está en `evidence/whiteboard-client-observations.json`. Las ejecuciones v0.3.0/v0.3.1 se conservan como históricas en sus JSON anteriores.
+La ejecución completa se conserva en `evidence/compact-v0.4.1-e2e.json`; las medidas de 100/1.000/10.000 objetos, en `compact-v0.4.1-benchmark.json`. Esas medidas corresponden a figuras simples con descarte de objetos fuera de la vista; no son una garantía de rendimiento en otro hardware.
 
-## Qué comprueban los casos nuevos
+## Casos de esta actualización
 
-- Una primera pizarra vacía y ausencia inicial de panel lateral.
-- Un clic para editar, Enter/F2, cancelación, saltos de línea, guardado y una sola transacción de undo por sesión.
-- Arrastre sin apertura accidental de escritura.
-- Fondo y cuadrícula que sobreviven a recarga y exportación WBRIDGE.
-- Controles esenciales y paletas dentro de 360, 820 y 1440 px.
-- Escritura/lectura real del contenedor HTML de datos sintéticos en el portapapeles de Chromium, sin PNG, y pegado editable dentro de Bridge.
-- Selección no compatible que deja intacto el portapapeles.
-- Captura de muestra sintética y descarga JSON sin insertar HTML activo.
-- Plantillas, enlaces y controles del temporizador.
+- Alto real de cabecera, barra inferior y zoom de 40 px en escritorio; fondo blanco también con tema oscuro.
+- Edición independiente de colores, contraste de texto e iconos, persistencia al recargar y restauración a blanco.
+- Ausencia del contador visual; las pruebas consultan metadatos del SVG para comprobar importaciones sin añadir un contador a la interfaz.
+- Límite del 500% con botones, Ctrl+rueda y eventos táctiles reales de dos dedos enviados por CDP. Archivos antiguos con vista de 800% se abren al 500% sin perder objetos.
+- Flecha hasta el borde, movimiento de las figuras, cambio de destino mediante el extremo y deshacer esa reconexión.
+- Arrastre desde un punto de conexión y flecha doble vertical unida automáticamente a ambas figuras; el color modifica el trazo y sus puntas.
+- Elipse rotada, triángulo, eliminación del origen, dirección vertical exacta y exportación de flechas gruesas sin recortes.
+- Se conservan las regresiones de edición directa, archivos, portapapeles, fondos, accesibilidad de controles, tema, funcionamiento offline y rendimiento.
 
-El round-trip sintético prueba nuestro serializador y la ruta del navegador. No ejecuta el parser de Microsoft, no prueba notas nativas en Whiteboard y no puede aprobar ese resultado. La captura de una muestra tampoco cambia automáticamente `verifiedInMicrosoft: false`.
+Después de la suite completa se amplió la comprobación de contraste a los botones de la cabecera y se corrigió el margen de exportación de flechas gruesas. Se repiten los cuatro casos de barras/conectores/zoom y el caso del portapapeles Microsoft sobre la compilación final. El resultado se conserva en `evidence/compact-v0.4.1-final-targeted.json`.
 
-## Problemas detectados durante la revisión
+## Evidencia visual y límites
 
-La primera adaptación dejaba el zoom detrás del panel de propiedades y la barra de acciones se superponía al tirador de rotación. Se reubicaron los controles y la barra pasa debajo de objetos cercanos al borde superior. También se restauró el engranaje de configuración en móvil, ocultado por una regla anterior.
+Capturas propias en `compact-v0.4.1-desktop.png`, `compact-v0.4.1-anchors.png`, `compact-v0.4.1-colors.png`, `compact-v0.4.1-820.png` y `compact-v0.4.1-360.png`; exportación raster en `compact-v0.4.1-export.png`. `compact-v0.4.1-visual.json` registra medidas reales y la comparación aproximada con las capturas aportadas, que no se redistribuyen.
 
-Los fixtures de regresión ahora crean explícitamente su escena de ejemplo; el producto ya no abre ocho objetos de demostración al primer uso. Los tests acceden a exportación, importación, figuras e inspector mediante los nuevos menús.
-
-## Límites de las mediciones
-
-La suite mantiene escenas de 100, 1.000 y 10.000 rectángulos. Los datos brutos de esta ejecución están en [workspace-v0.4-benchmark.json](evidence/workspace-v0.4-benchmark.json). No se extrapola a 10.000 imágenes o trazos densos ni a hardware Windows. El bundle principal conserva el aviso de Vite por superar 500 kB minificados; no se modifica el umbral para ocultarlo.
-
-Las capturas finales se incluyen en `evidence/workspace-v0.4-empty.png`, `workspace-v0.4-direct-edit.png`, `workspace-v0.4-background.png` y `workspace-v0.4-mobile.png`. La captura muestra objetos sintéticos locales, no evidencia del importador de Microsoft.
-
-Tras la suite completa se movió el aviso de estado a la parte superior en pantallas estrechas para no cubrir los colores. Se repitió el caso de layout en 360, 820 y 1440 px, incluyendo una comprobación de que aviso y paleta no se superponen: aprobado. Evidencia en `evidence/workspace-v0.4-layout-final.json`. No hubo cambios funcionales posteriores.
+La revisión automatizada usa Chromium en este ejecutor, aunque su user-agent indique Windows. No verifica un stylus ni un dispositivo táctil físico. El bundle principal conserva el aviso de Vite por superar 500 kB minificados. Los resultados v0.4.0 se conservan como evidencia histórica; la confirmación manual nueva se documenta en WHITEBOARD_CLIPBOARD.md.

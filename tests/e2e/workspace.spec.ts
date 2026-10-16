@@ -13,7 +13,7 @@ async function note(page: Page, text = 'Primera idea') {
 }
 
 test('el lienzo comienza vacío y una nota se edita con un clic, deshace por sesión y persiste', async ({ page }) => {
-  await expect(page.getByTestId('object-count')).toContainText('0 objetos');
+  await expect(page.getByTestId('board-canvas')).toHaveAttribute('data-object-count', '0');
   await expect(page.getByRole('complementary', { name: 'Propiedades y capas' })).toHaveCount(0);
   await note(page);
   const original = page.locator('[data-object][aria-label="Primera idea"]'); await original.click({ position: { x: 30, y: 30 } });
@@ -66,11 +66,11 @@ test('herramientas, paletas, zoom y configuración quedan dentro de la pantalla 
 
 test('el portapapeles de Chromium conserva el contenedor Microsoft sintético, sin aplanar a PNG', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']); await note(page, 'Prueba nativa\nTexto editable');
-  await page.getByRole('button', { name: 'Copiar objetos seleccionados', exact: true }).click(); await expect(page.getByRole('status')).toContainText('experimental');
+  await page.getByRole('button', { name: 'Copiar objetos seleccionados', exact: true }).click(); await expect(page.getByRole('status')).toContainText('Copia lista');
   const html = await page.evaluate(async () => { const entries = await navigator.clipboard.read(); const item = entries.find(item => item.types.includes('text/html'))!; return (await item.getType('text/html')).text(); });
   expect(whiteboardPayload(html)).toMatchObject({ boardItems: [{ content: { contentType: 'note', text: 'Prueba nativa\nTexto editable' } }] });
   await page.evaluate(async html => navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }) })]), html);
-  await page.getByTestId('board-canvas').press('Control+v'); await expect(page.getByTestId('object-count')).toContainText('2 objetos');
+  await page.getByTestId('board-canvas').press('Control+v'); await expect(page.getByTestId('board-canvas')).toHaveAttribute('data-object-count', '2');
   await page.locator('[data-object]').last().click({ position: { x: 30, y: 30 } }); await expect(page.getByLabel('Editar texto en lienzo')).toHaveValue('Prueba nativa\nTexto editable');
 });
 
@@ -92,7 +92,7 @@ test('captura el HTML nativo de una muestra sintética y descarga JSON sin inser
 });
 
 test('plantillas y enlaces crean contenido editable y el temporizador inicia, pausa y reinicia', async ({ page }) => {
-  await page.getByRole('button', { name: 'Más herramientas', exact: true }).click(); await page.getByRole('button', { name: 'Plantillas', exact: true }).click(); await page.getByRole('button', { name: /Lluvia de ideas/ }).click(); await expect(page.getByTestId('object-count')).toContainText('7 objetos');
+  await page.getByRole('button', { name: 'Más herramientas', exact: true }).click(); await page.getByRole('button', { name: 'Plantillas', exact: true }).click(); await page.getByRole('button', { name: /Lluvia de ideas/ }).click(); await expect(page.getByTestId('board-canvas')).toHaveAttribute('data-object-count', '7');
   await page.getByRole('button', { name: 'Más herramientas', exact: true }).click(); await page.getByRole('button', { name: 'Enlace o video', exact: true }).click(); await page.getByLabel('Dirección del enlace').fill('https://example.com/video'); await page.getByRole('button', { name: 'Insertar enlace', exact: true }).click(); await expect(page.getByRole('link', { name: 'Abrir enlace' })).toHaveAttribute('href', 'https://example.com/video');
   await page.getByRole('button', { name: 'Temporizador', exact: true }).click(); await page.getByLabel('Minutos', { exact: true }).fill('1'); await page.getByRole('button', { name: 'Iniciar', exact: true }).click(); await expect(page.locator('.timer-popover output')).toHaveText('00:59'); await page.getByRole('button', { name: 'Pausar', exact: true }).click(); await page.getByRole('button', { name: 'Reiniciar', exact: true }).click(); await expect(page.locator('.timer-popover output')).toHaveText('01:00');
 });

@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-16",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "measurements": {
+    ".whiteboard-header": {
+      "width": 1440,
+      "height": 40,
+      "background": "rgb(255, 255, 255)"
+    },
+    ".tool-dock": {
+      "width": 348,
+      "height": 40,
+      "background": "rgb(255, 255, 255)"
+    },
+    ".zoom-controls": {
+      "width": 178,
+      "height": 40,
+      "background": "rgb(255, 255, 255)"
+    }
+  },
+  "browserErrors": [],
+  "reference": {
+    "source": "Dos capturas aportadas por el usuario el 16-10-2026; medición aproximada de sus píxeles, sin redistribuirlas.",
+    "clone": {
+      "header": 65,
+      "tools": 70
+    },
+    "official": {
+      "header": 50,
+      "tools": 50
+    },
+    "implementationCSS": {
+      "headerBefore": 52,
+      "headerAfter": 40,
+      "toolsBefore": 56,
+      "toolsAfter": 40
+    }
+  },
+  "note": "Capturas propias y exportación PNG de una escena sintética local."
+}

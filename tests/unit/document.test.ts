@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createBoard, demoBoard, deserializeBoard, makeObject, parseBoard, serializeBoard } from '../../src/models/document';
 import { cloneObjects, useEditor } from '../../src/editor/store';
-import { boundsOf, descendants, reconcile, rotatedBounds, screenToWorld, SpatialIndex, zoomAt } from '../../src/editor/geometry';
-import { primitiveMarkup, wrapText } from '../../src/graphics/render';
+import { boundsOf, center, connectionAnchor, descendants, lineEndpoints, reconcile, rotatePoint, rotatedBounds, screenToWorld, SpatialIndex, zoomAt } from '../../src/editor/geometry';
+import { primitiveMarkup, svgFor, wrapText } from '../../src/graphics/render';
 import { WebCustomAdapter } from '../../src/clipboard/adapters';
 import { validateObservation, type LabRecord } from '../../src/interoperability/experiments';
 
@@ -23,9 +23,37 @@ describe('Documentos y migración', () => {
 });
 describe('Geometría y coordenadas', () => {
   it('mantiene el punto del mundo debajo del cursor al ampliar', () => { const v = { x: 125, y: -60, zoom: 0.6 }, p = { x: 631, y: 323 }; const before = screenToWorld(p, v), after = screenToWorld(p, zoomAt(v, p, 1.8)); expect(after.x).toBeCloseTo(before.x); expect(after.y).toBeCloseTo(before.y); });
+  it('limita el zoom al 500% y conserva el punto del cursor incluso en el límite', () => {
+    const v = { x: 125, y: -60, zoom: 4.9 }, p = { x: 631, y: 323 }, next = zoomAt(v, p, 10);
+    expect(next.zoom).toBe(5); expect(screenToWorld(p, next).x).toBeCloseTo(screenToWorld(p, v).x);
+    useEditor.getState().load(createBoard()); useEditor.getState().viewport({ ...v, zoom: 12 }); expect(useEditor.getState().board.viewport.zoom).toBe(5);
+    expect(zoomAt(v, p, .0001).zoom).toBe(.05);
+  });
+  it('normaliza vistas antiguas de 800% sin perder objetos ni modificar el archivo original', () => {
+    const b = demoBoard(); b.viewport.zoom = 8; const parsed = parseBoard(b);
+    expect(parsed.viewport.zoom).toBe(5); expect(parsed.objects).toEqual(b.objects); expect(b.viewport.zoom).toBe(8);
+    expect(() => parseBoard({ ...b, viewport: { ...b.viewport, zoom: Infinity } })).toThrow();
+  });
   it('incluye las esquinas de objetos rotados en la selección', () => { const o = makeObject('shape', { x: 0, y: 0 }, { width: 100, height: 20, rotation: 90 }); const b = rotatedBounds(o); expect(b.width).toBeCloseTo(20); expect(b.height).toBeCloseTo(100); });
   it('el índice maneja posiciones negativas y objetos grandes', () => { const objects = [makeObject('shape', { x: -600, y: -100 }), makeObject('shape', { x: 20_000, y: 20_000 }), makeObject('shape', { x: -5000, y: -5000 }, { width: 100_000, height: 100_000 })]; const index = new SpatialIndex(objects); expect(index.query({ x: -650, y: -150, width: 300, height: 300 }).map(o => o.id)).toEqual([objects[0].id, objects[2].id]); });
-  it('recalcula conectores cuando se mueven sus extremos', () => { const a = makeObject('shape', { x: 600, y: 100 }), b = makeObject('shape', { x: 0, y: 0 }), line = makeObject('line', { x: 0, y: 0 }, { fromId: a.id, toId: b.id }); const reconciled = reconcile([a, b, line]); expect(reconciled[2]).toMatchObject({ x: 100, y: 65, width: 600, height: 100, startAtEnd: true }); });
+  it('recalcula conectores cuando se mueven sus extremos', () => { const a = makeObject('shape', { x: 600, y: 100 }), b = makeObject('shape', { x: 0, y: 0 }), line = makeObject('line', { x: 0, y: 0 }, { fromId: a.id, toId: b.id }); const reconciled = reconcile([a, b, line]); const result = reconciled[2]; if (result.type !== 'line') throw new Error('Línea esperada'); const { start, end } = lineEndpoints(result); expect(start.x).toBeCloseTo(600); expect(end.x).toBeCloseTo(200); expect(start.y).toBeCloseTo(148.33333); expect(end.y).toBeCloseTo(81.66667); });
+  it('ancla la flecha al contorno de una elipse rotada y de un triángulo', () => {
+    const ellipse = makeObject('shape', { x: 100, y: 80 }, { shape: 'ellipse', width: 200, height: 100, rotation: 35 });
+    const anchor = connectionAnchor(ellipse, { x: 600, y: 220 }), local = rotatePoint(anchor, center(ellipse), -35);
+    expect(((local.x - 200) / 100) ** 2 + ((local.y - 130) / 50) ** 2).toBeCloseTo(1);
+    const triangle = makeObject('shape', { x: 0, y: 0 }, { shape: 'triangle', width: 200, height: 100 });
+    expect(connectionAnchor(triangle, { x: 500, y: 50 })).toEqual({ x: 150, y: 50 });
+  });
+  it('conserva conectores verticales exactos y su dirección al borrar el origen', () => {
+    const a = makeObject('shape', { x: 0, y: 400 }), b = makeObject('shape', { x: 0, y: 0 });
+    const line = reconcile([a, b, makeObject('line', { x: 0, y: 0 }, { fromId: a.id, toId: b.id })])[2];
+    if (line.type !== 'line') throw new Error('Línea esperada');
+    expect(line.width).toBe(0); expect(lineEndpoints(line)).toEqual({ start: { x: 100, y: 400 }, end: { x: 100, y: 130 } });
+    const detached = reconcile([b, line])[1]; if (detached.type !== 'line') throw new Error('Línea esperada');
+    expect(detached.fromId).toBeNull(); expect(lineEndpoints(detached)).toEqual(lineEndpoints(line));
+    const board = createBoard(); board.objects = [b, detached]; expect(parseBoard(board)).toBeTruthy();
+    expect(primitiveMarkup(line)).toContain('data-arrowhead="end" fill=');
+  });
 });
 describe('Edición transaccional', () => {
   it('agrupa, mueve, duplica y deshace preservando relaciones', () => {
@@ -50,6 +78,18 @@ describe('Edición transaccional', () => {
 describe('Intercambio y render seguro', () => {
   it('el formato propio recupera objetos y permite pegar en otra ubicación', () => { const b = demoBoard(), raw = WebCustomAdapter.encode(b.objects), objects = WebCustomAdapter.decode(raw, { x: 600, y: 200 }); expect(objects.length).toBe(b.objects.length); expect(objects[0].id).not.toBe(b.objects[0].id); expect(boundsOf(objects)?.x).toBeCloseTo(600); expect(boundsOf(objects)?.y).toBeCloseTo(200); });
   it('escapa texto y nunca convierte el contenido en nodos SVG activos', () => { const o = makeObject('text', { x: 0, y: 0 }, { text: '<script>alert(1)</script>', width: 1000 }); const markup = primitiveMarkup(o); expect(markup).not.toContain('<script>'); expect(markup).toContain('&lt;script&gt;'); });
+  it('exporta flechas de trazo grueso sin recortar sus puntas', () => {
+    const o = makeObject('line', { x: 0, y: 0 }, { width: 2000, height: 0, strokeWidth: 100, arrow: 'both' });
+    const svg = svgFor([o]), view = svg.match(/viewBox="([^"]+)"/)![1].split(' ').map(Number);
+    const heads = [...svg.matchAll(/data-arrowhead="[^"]+"[^>]+d="([^"]+)"/g)]; expect(heads).toHaveLength(2);
+    for (const head of heads) {
+      const coordinates = head[1].match(/-?\d+(?:\.\d+)?/g)!.map(Number);
+      for (let i = 0; i < coordinates.length; i += 2) {
+        expect(coordinates[i] - 50).toBeGreaterThanOrEqual(view[0]); expect(coordinates[i] + 50).toBeLessThanOrEqual(view[0] + view[2]);
+        expect(coordinates[i + 1] - 50).toBeGreaterThanOrEqual(view[1]); expect(coordinates[i + 1] + 50).toBeLessThanOrEqual(view[1] + view[3]);
+      }
+    }
+  });
   it('divide palabras largas sin perder caracteres', () => { const raw = 'abcdefghijklmnopqrstuvwxy'; expect(wrapText(raw, 30, 10).join('')).toBe(raw); });
   it('no permite clasificar PNG como éxito de edición nativa', () => { const raw: LabRecord = { id: 'x', date: new Date().toISOString(), source: 'Bridge', target: 'Whiteboard Web', object: 'Nota adhesiva', mode: 'png', browser: 'Chrome', browserVersion: '150', account: 'Trabajo', outcome: 'Aprobado', representation: 'Imagen', checks: { pasted: 'Sí', nativeType: 'No', editable: 'No', repeated: 'Sí' }, note: '', evidence: 'local-01', session: 's1', actualFormats: ['image/png'] }; expect(() => validateObservation(raw)).toThrow(/natividad/); });
 });

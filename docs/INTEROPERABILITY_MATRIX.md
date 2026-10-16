@@ -1,8 +1,8 @@
-Actualización v0.4.0: el usuario informó que los formatos anteriores solo consiguieron pegar PNG en Microsoft. El adaptador nuevo genera HTML de objetos experimental y permite capturar muestras; aún no hay una ejecución autenticada de ese adaptador en Microsoft. Las filas sin evidencia continúan como no ejecutadas y no se aprueban automáticamente a partir de tests internos.
+Actualización v0.4.1: el usuario confirmó «Funciono el pegado» el 16-10-2026 tras probar el adaptador de v0.4.0. Se registra la confirmación manual global sin atribuir resultados a filas individuales que el usuario no describió.
 
 # Matriz de interoperabilidad externa
 
-Estado al 16-10-2026. **No hay ejecuciones autenticadas en Microsoft Whiteboard en esta entrega.** Ninguna fila se marca aprobada por documentación, apariencia del editor o una transferencia Bridge→Bridge.
+Estado al 16-10-2026. **Pegado confirmado por el usuario; sin ejecución automatizada autenticada en Microsoft.** Las filas siguientes son una plantilla para ampliar los resultados por entorno y no invalidan la confirmación recibida. No se marcan todos los tipos como aprobados a partir de ese reporte global.
 
 ## Whiteboard → Whiteboard: línea base
 

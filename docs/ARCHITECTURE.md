@@ -17,21 +17,21 @@
 | `scripts/build-sw.mjs` | Precache del paquete estático con hash de contenido |
 | `scripts/check-pages.mjs` | Verifica rutas y recursos generados contra el nombre del repositorio de Pages |
 
-El documento no depende de Microsoft. El módulo `src/clipboard/whiteboard.ts` implementa un codec experimental del contenedor HTML observado de Microsoft. El descriptor informa `verifiedInMicrosoft: false`; las comprobaciones en Chromium y Bridge no se extrapolan al destino autenticado. Ver WHITEBOARD_CLIPBOARD.md.
+El documento no depende de Microsoft. El módulo `src/clipboard/whiteboard.ts` implementa un codec del contenedor HTML observado de Microsoft. El descriptor registra la confirmación manual del usuario del 16-10-2026 y distingue esa evidencia de los tests automatizados en Chromium. Ver WHITEBOARD_CLIPBOARD.md.
 
 ## Documento y relaciones
 
-Versión 2 con `schema: whiteboard-bridge`. El fondo tiene color y cuadrícula; al abrir documentos anteriores se asigna blanco con puntos. Se amplía el conjunto de figuras, por lo que una aplicación anterior a 0.4.0 puede rechazar las figuras nuevas. Cada objeto tiene identidad, posición, dimensiones, rotación, zIndex, opacidad, bloqueo y estilos. Los tipos añaden texto, figura, extremos de línea, puntos normalizados de tinta, raster data URL o hijos de grupo. `groupId` e hijos deben concordar; se rechazan ciclos, referencias rotas, IDs duplicados y más de 16 niveles. Los conectores apuntan a IDs de objetos y sus extremos se recalculan desde los centros.
+Versión 2 con `schema: whiteboard-bridge`. El fondo tiene color y cuadrícula; al abrir documentos anteriores se asigna blanco con puntos. Se amplía el conjunto de figuras, por lo que una aplicación anterior a 0.4.0 puede rechazar las figuras nuevas. Cada objeto tiene identidad, posición, dimensiones, rotación, zIndex, opacidad, bloqueo y estilos. Los tipos añaden texto, figura, extremos de línea, puntos normalizados de tinta, raster data URL o hijos de grupo. `groupId` e hijos deben concordar; se rechazan ciclos, referencias rotas, IDs duplicados y más de 16 niveles. Los conectores apuntan a IDs de objetos y sus extremos se recalculan en el contorno real de las figuras, considerando su rotación. `shapePolygon` comparte vértices entre geometría y render. Las líneas horizontales/verticales admiten una dimensión cero sin una inclinación artificial.
 
 Los grupos usan coordenadas absolutas para sus miembros; una transformación de grupo se aplica a los descendientes y se recalcula el límite agregado. Las copias renuevan IDs y remapean grupos y conectores. Las referencias que salen de una selección copiada se eliminan del payload portable. El tamaño y rotación individuales se conservan dentro del esquema.
 
 ## Coordenadas, selección e historial
 
-`pantalla = mundo × zoom + traslación`. El viewport guarda traslación y zoom (0,05–8). El lienzo se mueve en torno al origen y no se crea una superficie SVG gigantesca. El documento admite ±10 millones de unidades; no es matemáticamente infinito. El eje Y crece hacia abajo.
+`pantalla = mundo × zoom + traslación`. El viewport guarda traslación y zoom (0,05–5). El lienzo se mueve en torno al origen y no se crea una superficie SVG gigantesca. El documento admite ±10 millones de unidades; no es matemáticamente infinito. El eje Y crece hacia abajo.
 
 Una rejilla dispersa de celdas de 500 unidades devuelve candidatos al viewport, con 120 píxeles de margen. Los objetos de más de 100 celdas usan un bucket adicional para evitar explotar el índice. Las coordenadas negativas se indexan con `floor`. La lista de capas se pagina a 100 elementos. `ObjectView` es memoizado; el índice se reconstruye al cambiar los objetos, no al desplazar la vista.
 
-El arrastre previsualiza el estado y produce una única transacción al soltar. Cancelar el puntero revierte la transacción. Undo/redo usa snapshots inmutables y referencias compartidas, hasta 50 versiones o 8 si hay más de 5.000 objetos. Los campos de texto generan transacciones por cambio; una futura agrupación por sesión de edición puede mejorar ese historial.
+El arrastre previsualiza el estado y produce una única transacción al soltar. Cancelar el puntero revierte la transacción. Undo/redo usa snapshots inmutables y referencias compartidas, hasta 50 versiones o 8 si hay más de 5.000 objetos. La escritura en el lienzo se agrupa como una transacción por sesión; los campos del inspector conservan su edición por cambio.
 
 Lazo: selecciona por el centro del objeto, criterio explícito. El área rectangular usa intersección de límites rotados. El borrador elimina objetos completos. Alt + clic permite seleccionar un miembro de grupo. No se modela borrado parcial de tinta.
 
@@ -52,7 +52,7 @@ No se incluye WASM, Worker ni OffscreenCanvas: la tinta actual no justifica otra
 
 ## Persistencia, PWA y conflictos
 
-Dexie almacena documentos completos, revisiones y ajustes. Validación antes de escribir; una cola evita invertir el orden de escrituras. Los respaldos se validan completos antes de una transacción y se restauran con IDs nuevos. La recuperación abre una copia de una versión anterior.
+Dexie almacena documentos completos, revisiones y ajustes. Los colores de las barras se guardan en `bar-colors`, separados del fondo y del tema. Por defecto ambos son blancos; el color del texto se calcula por contraste. Las vistas antiguas entre 500% y 800% se normalizan a 500% al abrirlas sin cambiar sus objetos. Validación antes de escribir; una cola evita invertir el orden de escrituras. Los respaldos se validan completos antes de una transacción y se restauran con IDs nuevos. La recuperación abre una copia de una versión anterior.
 
 BroadcastChannel detecta cambios de otra pestaña y pausa autoguardado hasta que se exporten cambios o se cargue el documento guardado. Es detección básica, sin merge colaborativo ni garantía de exclusión mutua ante escrituras exactamente simultáneas. No hay CRDT ni colaboración remota.
 

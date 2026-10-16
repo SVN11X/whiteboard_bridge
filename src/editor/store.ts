@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createBoard, uid, MAX_OBJECTS, type Board, type BoardObject, type Viewport } from '../models/document';
+import { createBoard, uid, MAX_OBJECTS, clampZoom, type Board, type BoardObject, type Viewport } from '../models/document';
 import { boundsOf, center, descendants, isLocked, reconcile, rotatePoint } from './geometry';
 
 type State = {
@@ -36,7 +36,7 @@ export function cloneObjects(objects: BoardObject[], dx = 32, dy = 32): BoardObj
 }
 export const useEditor = create<State>((set, get) => ({
   board: createBoard('Whiteboard'), selected: [], past: [], future: [], revision: 0, busy: false,
-  load: board => set({ board, selected: [], past: [], future: [], revision: 0, busy: false }),
+  load: board => set({ board: { ...board, viewport: { ...board.viewport, zoom: clampZoom(board.viewport.zoom) }, objects: reconcile(board.objects) }, selected: [], past: [], future: [], revision: 0, busy: false }),
   select: selected => set({ selected }),
   commit: (objects, previous) => set(s => ({ board: { ...s.board, objects: reconcile(objects), updatedAt: new Date().toISOString() }, past: history(s.past, previous ?? s.board), future: [], revision: s.revision + 1, busy: false })),
   preview: objects => set(s => ({ board: { ...s.board, objects: reconcile(objects) }, busy: true })),
@@ -65,7 +65,7 @@ export const useEditor = create<State>((set, get) => ({
   duplicate: () => { const s = get(), ids = descendants(s.board.objects, s.selected); get().add(cloneObjects(s.board.objects.filter(o => ids.has(o.id)))); },
   undo: () => set(s => s.past.length ? { board: s.past[s.past.length - 1], past: s.past.slice(0, -1), future: [s.board, ...s.future], selected: [], revision: s.revision + 1 } : {}),
   redo: () => set(s => s.future.length ? { board: s.future[0], future: s.future.slice(1), past: history(s.past, s.board), selected: [], revision: s.revision + 1 } : {}),
-  viewport: viewport => set(s => ({ board: { ...s.board, viewport } })),
+  viewport: viewport => set(s => ({ board: { ...s.board, viewport: { ...viewport, zoom: clampZoom(viewport.zoom) } } })),
   background: background => set(s => ({ board: { ...s.board, background, updatedAt: new Date().toISOString() }, past: history(s.past, s.board), future: [], revision: s.revision + 1 })),
   rename: name => { if (name.trim()) set(s => ({ board: { ...s.board, name: name.trim().slice(0, 120), updatedAt: new Date().toISOString() }, revision: s.revision + 1 })); },
   group: () => {

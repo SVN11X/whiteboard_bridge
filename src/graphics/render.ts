@@ -1,5 +1,9 @@
 import type { BoardObject } from '../models/document';
-import { boundsOf } from '../editor/geometry';
+import { shapePolygon } from './shapes';
+import { boundsOf, lineEndpoints } from '../editor/geometry';
+const ARROW_ANGLE = .45;
+const arrowLength = (o: BoardObject) => Math.min(Math.hypot(o.width, o.height) * .45, Math.max(12, o.strokeWidth * 4));
+const exportPadding = (objects: BoardObject[]) => Math.ceil(Math.max(24, ...objects.map(o => Math.max(o.strokeWidth * 2, o.type === 'line' && o.arrow !== 'none' ? arrowLength(o) * Math.sin(ARROW_ANGLE) + o.strokeWidth / 2 : 0))));
 export const esc = (s: unknown) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 export function wrapText(text: string, width: number, fontSize: number): string[] {
   const max = Math.max(1, Math.floor(width / (fontSize * 0.56))), lines: string[] = [];
@@ -40,15 +44,18 @@ export function primitiveMarkup(o: BoardObject, showText = true): string {
     return `<g fill="none" stroke="${o.stroke}" stroke-linecap="round" stroke-linejoin="round">${segments.join('')}</g>`;
   }
   if (o.type === 'line') {
-    const left = { x: 0, y: o.reversed ? h : 0 }, right = { x: w, y: o.reversed ? 0 : h };
-    const a = o.startAtEnd ? right : left, b = o.startAtEnd ? left : right;
-    const head = (tip: typeof a, other: typeof a) => { const angle = Math.atan2(tip.y - other.y, tip.x - other.x), len = Math.max(12, o.strokeWidth * 4); return `<path d="M${tip.x - len * Math.cos(angle - 0.5)} ${tip.y - len * Math.sin(angle - 0.5)} L${tip.x} ${tip.y} L${tip.x - len * Math.cos(angle + 0.5)} ${tip.y - len * Math.sin(angle + 0.5)}"/>`; };
-    return `<g fill="none" stroke="${o.stroke}" stroke-width="${o.strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M${a.x} ${a.y} L${b.x} ${b.y}"/>${o.arrow !== 'none' ? head(b, a) : ''}${o.arrow === 'both' ? head(a, b) : ''}</g>`;
+    const { start: a, end: b } = lineEndpoints({ ...o, x: 0, y: 0, rotation: 0 });
+    const length = Math.hypot(b.x - a.x, b.y - a.y);
+    const head = (tip: typeof a, other: typeof a, end: string) => {
+      const angle = Math.atan2(tip.y - other.y, tip.x - other.x), len = arrowLength(o);
+      return `<path data-arrowhead="${end}" fill="${o.stroke}" d="M${tip.x - len * Math.cos(angle - ARROW_ANGLE)} ${tip.y - len * Math.sin(angle - ARROW_ANGLE)} L${tip.x} ${tip.y} L${tip.x - len * Math.cos(angle + ARROW_ANGLE)} ${tip.y - len * Math.sin(angle + ARROW_ANGLE)} Z"/>`;
+    };
+    return `<g fill="none" stroke="${o.stroke}" stroke-width="${o.strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path data-line-path="true" d="M${a.x} ${a.y} L${b.x} ${b.y}"/>${length && o.arrow !== 'none' ? head(b, a, 'end') : ''}${length && o.arrow === 'both' ? head(a, b, 'start') : ''}</g>`;
   }
   if (o.type === 'text') return showText ? textMarkup(o) : '';
   const text = showText ? textMarkup(o) : '';
   if (o.type === 'sticky') return `<rect width="${w}" height="${h}" rx="2" fill="${o.fill}"/>${text}`;
-  const points = o.shape === 'triangle' ? `${w / 2},0 ${w},${h} 0,${h}` : o.shape === 'diamond' ? `${w / 2},0 ${w},${h / 2} ${w / 2},${h} 0,${h / 2}` : o.shape === 'pentagon' ? `${w / 2},0 ${w},${h * .38} ${w * .81},${h} ${w * .19},${h} 0,${h * .38}` : o.shape === 'parallelogram' ? `${w * .22},0 ${w},0 ${w * .78},${h} 0,${h}` : `${w * .6},0 ${w},${h / 2} ${w * .6},${h} ${w * .6},${h * .7} 0,${h * .7} 0,${h * .3} ${w * .6},${h * .3}`;
+  const points = shapePolygon(o)?.map(p => `${p.x},${p.y}`).join(' ') ?? '';
   const geometry = o.shape === 'ellipse' ? `<ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}" ${style}/>` : o.shape === 'rect' || o.shape === 'capsule' ? `<rect width="${w}" height="${h}" rx="${o.shape === 'capsule' ? Math.min(w, h) / 2 : 0}" ${style}/>` : `<polygon points="${points}" ${style}/>`;
   return geometry + text;
 }
@@ -57,12 +64,12 @@ export function objectMarkup(o: BoardObject): string {
 }
 export function svgFor(objects: BoardObject[], white = false): string {
   const b = boundsOf(objects.filter(o => o.type !== 'group')); if (!b) throw new Error('La pizarra está vacía.');
-  const pad = Math.max(24, ...objects.map(o => o.strokeWidth * 2)), x = b.x - pad, y = b.y - pad, width = Math.ceil(b.width + pad * 2), height = Math.ceil(b.height + pad * 2);
+  const pad = exportPadding(objects), x = b.x - pad, y = b.y - pad, width = Math.ceil(b.width + pad * 2), height = Math.ceil(b.height + pad * 2);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${x} ${y} ${width} ${height}"><title>Whiteboard Bridge — exportación visual</title>${white ? `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="#ffffff"/>` : ''}${[...objects].sort((a, b) => a.zIndex - b.zIndex).map(objectMarkup).join('')}</svg>`;
 }
 export async function pngFor(objects: BoardObject[]): Promise<Blob> {
   const b = boundsOf(objects.filter(o => o.type !== 'group')); if (!b) throw new Error('Selecciona al menos un objeto.');
-  const pad = Math.max(24, ...objects.map(o => o.strokeWidth * 2));
+  const pad = exportPadding(objects);
   const width = Math.ceil(b.width + pad * 2), height = Math.ceil(b.height + pad * 2);
   if (width > 8192 || height > 8192 || width * height > 16_000_000) throw new Error('PNG supera 16 megapíxeles u 8192 px. Reduce la selección o exporta SVG.');
   const url = URL.createObjectURL(new Blob([svgFor(objects, true)], { type: 'image/svg+xml' }));

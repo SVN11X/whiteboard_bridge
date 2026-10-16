@@ -1,4 +1,4 @@
-Actualización v0.4.0: encoder HTML experimental implementado para notas, texto y figuras; la prioridad inmediata es obtener muestras y verificar el importador real de Microsoft. No se declara cerrado el objetivo de interoperabilidad nativa.
+Actualización v0.4.1: pegado confirmado por el usuario el 16-10-2026; nombre «Microsoft Whiteboard · editable». Barras compactas y configurables, zoom hasta 500%, conectores al contorno y edición directa implementados.
 
 # Próximos pasos
 
@@ -9,8 +9,8 @@ Actualización v0.4.0: encoder HTML experimental implementado para notas, texto 
 | P0 | Evaluar cualquier formato portable legítimo observado | Contrato independiente de credenciales/IDs privados y encoder mínimo aceptado por Microsoft |
 | P1 | Pruebas de Edge/Chrome Windows, stylus y multitáctil físico | Registrar versiones y diferencias; corregir gestos observados |
 | P1 | Ampliar medición a escenas densas de tinta, imágenes y grupos | FPS, latencia y memoria reales por carga; decidir si Canvas aporta mejora |
-| P1 | Agrupar historial de edición textual y exclusión de escritura entre pestañas | Undo por sesión de texto y conflictos sin sobrescritura simultánea |
-| P1 | Ajuste de texto medido y conectores a bordes | Correspondencia entre texto visible/exportado y rutas estables |
+| P1 | Exclusión de escritura entre pestañas; historial de edición directa ya agrupado | Undo por sesión de texto y conflictos sin sobrescritura simultánea |
+| P1 | Ajuste de texto medido y rutas de conectores que eviten obstáculos | Correspondencia entre texto visible/exportado y rutas estables |
 | P2 | Exportación PDF local con paginado explícito | Pruebas visuales sobre texto, imágenes, tinta y grupos |
 | P2 | Borrado parcial y suavizado de tinta | Geometría recuperable, sin aplanar el documento |
 | P2 | Auditoría de lector de pantalla y WCAG 2.2 AA | Hallazgos registrados, correcciones y validación manual |

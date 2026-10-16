@@ -2,7 +2,7 @@
 
 ## No validado externamente
 
-- Bridge→Microsoft Whiteboard nativo. Existe un encoder experimental de HTML para notas, texto y figuras, pero el pegado real en Microsoft no está comprobado. Tinta, imágenes y conectores no se serializan en ese modo; los grupos compatibles se separan. Ver WHITEBOARD_CLIPBOARD.md.
+- Matriz completa Bridge→Microsoft por objeto, navegador y cuenta. El usuario confirmó que funcionó el pegado de v0.4.0; no detalló todos esos casos. Tinta, imágenes y conectores no se serializan en el modo Microsoft; los grupos compatibles se separan. Ver WHITEBOARD_CLIPBOARD.md.
 - Acceso o paridad de funciones entre cuentas personales, trabajo y educación; Web frente a Teams; Edge y Chrome en Windows.
 - Ejecución de GitHub Actions y publicación remota. La ruta equivalente y el paquete compilado se prueban localmente.
 - Inspector PowerShell en Windows: conservado y revisado, no ejecutado en Linux.
@@ -11,14 +11,14 @@
 
 ## Funcionalidad implementada con límites explícitos
 
-- Plano navegable de coordenadas finitas ±10 millones; zoom 5–800 %. No se usa una superficie SVG de dimensiones fijas como sustituto del viewport.
+- Plano navegable de coordenadas finitas ±10 millones; zoom 5–500 %. No se usa una superficie SVG de dimensiones fijas como sustituto del viewport.
 - Borrador por objeto completo; no borra segmentos de un trazo.
 - Lazo selecciona por centros; no calcula intersección exacta de polígonos con contornos de tinta.
 - Tinta de segmentos con grosor según presión; no hay estabilizador, reconocimiento de formas o contornos perfect-freehand.
-- El tema oscuro cambia los controles; el papel del lienzo se mantiene claro para que los colores reales del documento y sus exportaciones sigan siendo legibles.
+- El tema oscuro cambia paneles y diálogos; las barras conservan sus colores configurables, blancos por defecto; el papel del lienzo se mantiene claro para que los colores reales del documento y sus exportaciones sigan siendo legibles.
 - Textos planos con estilos por objeto. No hay texto enriquecido por palabra ni tipografía descargada. El ajuste de líneas es aproximado según tamaño de fuente; puede diferir entre sistemas.
 - Redimensionar selección usa sus límites alineados a ejes. Los grupos conservan miembros, y su rotación se aplica a cada descendiente. No existe un marco local independiente para grupos.
-- Conectores entre centros; no evitan obstáculos ni se adhieren al borde de la figura. Solo la flecha conserva la orientación de origen/destino, sin semántica de diagrama.
+- Conectores rectos anclados al contorno, con puntos de conexión y extremos que se pueden volver a unir. No evitan obstáculos ni calculan rutas alrededor de figuras superpuestas.
 - Las imágenes se normalizan y GIF queda como un fotograma; no se admite SVG importado ni URLs remotas.
 - PDF no implementado: se prioriza una exportación local verificable SVG/PNG sobre una conversión parcial no comprobada. El usuario puede usar las herramientas de impresión del navegador, sin promesa de PDF multipágina exacto.
 - Límites JSON y geometría documentados en SECURITY.md. PNG puede rechazar selecciones demasiado extensas; SVG permite conservar su representación vectorial.
@@ -34,6 +34,6 @@ El namespace web personalizado requiere que el receptor lo admita; no obliga a M
 
 No se sostiene que todo intercambio editable sea imposible en cualquier escenario. Lo que falta es evidencia suficiente y un contrato reproducible para implementarlo legítimamente.
 
-## Entorno de v0.4.0
+## Entorno de v0.4.1
 
 La disposición se adapta a las capturas, pero no se replica el servicio de Microsoft: Compartir entrega un archivo, los comentarios son locales y no se incluyen cuentas, coautoría ni Loop. Los enlaces y videos se añaden como enlaces editables que se pueden abrir; no se incrustan iframes. Las cuadrículas se conservan en WBRIDGE; las exportaciones SVG/PNG continúan representando objetos sobre su fondo de exportación.

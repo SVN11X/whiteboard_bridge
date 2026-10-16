@@ -60,3 +60,7 @@ Se conservan **JSON** como alternativa editable compatible con versiones anterio
 ## Fondo y figuras en v0.4.0
 
 El esquema 2 admite `background: { color: "#ffffff", grid: "dot" }`. Si falta, la lectura asigna ese fondo por defecto. Las cuadrículas son `solid`, `dot`, `square`, `graph`, `hybrid`, `diamond`, `wide-rule`, `triangle` y `narrow-rule`. Se añaden `pentagon`, `parallelogram`, `arrow-shape` y `capsule` a las figuras existentes. Los documentos con esas figuras necesitan Bridge 0.4.0 o posterior. No cambia el nombre de IndexedDB ni se elimina ninguna pizarra guardada. El fondo se conserva en el proyecto editable; los exports visuales siguen renderizando los objetos.
+
+## Vista y conectores en v0.4.1
+
+El zoom se guarda entre 0,05 y 5 (5–500%). Las vistas de versiones anteriores entre 5 y 8 se abren normalizadas a 5 conservando sus objetos. Una línea puede tener ancho o alto cero para conservar horizontales y verticales exactas; las demás figuras mantienen dimensiones mínimas de una unidad. Los extremos referenciados se ajustan al contorno al abrir o editar el proyecto. Los colores de las barras son preferencias del navegador y no forman parte del documento.

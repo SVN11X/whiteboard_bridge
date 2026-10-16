@@ -6,12 +6,12 @@ export type CopyMode = 'plain' | 'html' | 'png' | 'custom' | 'mixed' | 'microsof
 export type CopyResult = { requested: CopyMode; written: string[]; warnings: string[]; timestamp: string };
 export type FormatInfo = { type: string; bytes?: number; error?: string; item: number };
 export const MODES: { id: CopyMode; title: string; fidelity: string }[] = [
-  { id: 'microsoft', title: 'Microsoft Whiteboard · experimental', fidelity: 'Notas, texto y figuras básicas con datos de objetos. El pegado y la edición en Microsoft todavía requieren verificación real. Los grupos se separan; no incluye imágenes ni tinta.' },
-  { id: 'custom', title: 'Editable en Bridge', fidelity: 'Formato propio · Microsoft sin verificar' },
+  { id: 'microsoft', title: 'Microsoft Whiteboard · editable', fidelity: 'Copia notas, texto y figuras básicas como objetos editables en Microsoft Whiteboard. Los grupos se separan; las imágenes, la tinta y las líneas requieren otro formato.' },
+  { id: 'custom', title: 'Editable en Bridge', fidelity: 'Conserva los objetos y sus propiedades en Bridge' },
   { id: 'html', title: 'HTML + texto', fidelity: 'Parcial · según el destino' },
   { id: 'plain', title: 'Texto plano', fidelity: 'Parcial · pierde figuras y estilos' },
   { id: 'png', title: 'Imagen PNG', fidelity: 'Visual · objetos aplanados' },
-  { id: 'mixed', title: 'Combinado', fidelity: 'Experimental · el destino elige' },
+  { id: 'mixed', title: 'Combinado', fidelity: 'Varios formatos · el destino elige' },
 ];
 export function capabilities() {
   return { secureContext: window.isSecureContext, read: !!navigator.clipboard?.read, write: !!navigator.clipboard?.write, custom: typeof ClipboardItem !== 'undefined' && !!ClipboardItem.supports?.(WEB_CUSTOM_MIME) };
@@ -44,7 +44,7 @@ export async function copyObjects(items: BoardObject[], mode: CopyMode): Promise
     if (mode !== 'mixed' && mode !== 'custom') throw error;
     // Retry a useful standard representation; report the actual formats, never claim original fidelity.
     delete data[WEB_CUSTOM_MIME]; delete data['image/png'];
-    warnings.push(`Formato experimental rechazado; se reintentó con HTML + texto (${error instanceof Error ? error.message : String(error)}).`);
+    warnings.push(`Formato combinado rechazado; se reintentó con HTML + texto (${error instanceof Error ? error.message : String(error)}).`);
     await navigator.clipboard.write([new ClipboardItem(data)]);
     }
   }

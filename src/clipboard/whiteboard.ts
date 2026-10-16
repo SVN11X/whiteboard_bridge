@@ -41,8 +41,8 @@ export function encodeWhiteboard(items: BoardObject[]): { html: string; warnings
   const objects = items.filter(item => item.type !== 'group');
   if (!objects.length) throw new Error('Selecciona una nota, texto o figura.');
   const unsupported = objects.filter(item => !['text', 'sticky', 'shape'].includes(item.type) || item.type === 'shape' && !(item.shape in WHITEBOARD_SHAPES));
-  if (unsupported.length) throw new Error('La copia experimental a Microsoft admite notas, texto y figuras básicas. La selección incluye objetos aún no admitidos (tinta, imágenes, líneas o flecha sólida). No se ha sustituido por una imagen. Selecciona solo los objetos compatibles o elige Imagen PNG.');
-  const warnings = ['Formato de Microsoft experimental: comprueba la edición nativa después de pegar.'];
+  if (unsupported.length) throw new Error('La copia a Microsoft Whiteboard admite notas, texto y figuras básicas. La selección incluye objetos aún no admitidos (tinta, imágenes, líneas o flecha sólida). No se ha sustituido por una imagen. Selecciona solo los objetos compatibles o elige Imagen PNG.');
+  const warnings: string[] = [];
   if (items.some(item => item.type === 'group')) warnings.push('Los grupos se envían como objetos separados.');
   let adjustedColor = false;
   const boardItems = objects.map(item => {
@@ -96,4 +96,4 @@ export function decodeWhiteboard(html: string, target: Point): BoardObject[] | n
   return objects.map(item => objectSchema.parse({ ...item, x: item.x + target.x - bounds.x, y: item.y + target.y - bounds.y }));
 }
 
-export const WhiteboardNativeAdapter = Object.freeze({ id: 'microsoft-whiteboard-native', available: true, status: 'experimental', verifiedInMicrosoft: false, mime: 'text/html', container: 'whiteboard-tag[whiteboardcontent]', supported: ['note', 'plaintext', 'shape'], evidenceRequired: ['Pegado en Whiteboard real', 'Texto y color editables', 'Objetos separados', 'Repetición en dos sesiones'] });
+export const WhiteboardNativeAdapter = Object.freeze({ id: 'microsoft-whiteboard-native', available: true, status: 'user-confirmed', verification: { method: 'user-report', date: '2026-10-16', automatedMicrosoftTest: false }, mime: 'text/html', container: 'whiteboard-tag[whiteboardcontent]', supported: ['note', 'plaintext', 'shape'], evidenceRequired: ['Pegado en Whiteboard real', 'Texto y color editables', 'Objetos separados', 'Repetición en dos sesiones'] });

@@ -6,7 +6,7 @@ test('mediciones reproducibles con 100, 1000 y 10000 objetos', async ({ page, br
   for (const count of [100, 1000, 10000]) {
     await page.goto('./'); await expect(page.getByTestId('board-canvas')).toBeVisible();
     const raw = JSON.stringify({ schema: 'whiteboard-bridge', version: 2, id: `benchmark-${count}`, name: `Benchmark ${count}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), viewport: { x: 0, y: 0, zoom: 1 }, objects: Array.from({ length: count }, (_, i) => ({ id: `shape-${i}`, type: 'shape', shape: 'rect', text: '', fontSize: 20, textColor: '#203a35', align: 'center', x: (i % 100) * 240, y: Math.floor(i / 100) * 180, width: 200, height: 130, rotation: 0, zIndex: i, opacity: 1, locked: false, groupId: null, fill: '#dceae6', stroke: '#24574e', strokeWidth: 2, label: '' })) });
-    const start = Date.now(); await page.getByLabel('Archivo de proyecto').setInputFiles({ name: `benchmark-${count}.json`, mimeType: 'application/json', buffer: Buffer.from(raw) }); await expect(page.getByTestId('object-count')).toContainText(`${count} objetos`); const importMs = Date.now() - start;
+    const start = Date.now(); await page.getByLabel('Archivo de proyecto').setInputFiles({ name: `benchmark-${count}.json`, mimeType: 'application/json', buffer: Buffer.from(raw) }); await expect(page.getByTestId('board-canvas')).toHaveAttribute('data-object-count', String(count)); const importMs = Date.now() - start;
     const canvasBox = await page.getByTestId('board-canvas').boundingBox();
     await page.mouse.move(canvasBox!.x + 400, canvasBox!.y + 250); await page.mouse.down({ button: 'middle' });
     const metrics = await page.evaluate(async () => {

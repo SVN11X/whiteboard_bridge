@@ -30,6 +30,6 @@ El script Windows es opcional y no se ejecuta desde la web. Su modo de extracci�
 
 Para comunicar un problema, adjuntar un caso mínimo sintético, versión del navegador y pasos; no enviar credenciales ni pizarras confidenciales. No hay un canal externo automático de reporte.
 
-## Intercambio experimental y captura
+## Intercambio con Microsoft y captura
 
 El HTML nativo se interpreta leyendo un atributo de datos y decodificando JSON; no se monta en el DOM ni se ejecuta. Se validan límites y campos antes de convertir notas, texto o figuras. Se rechazan tipos activos o estructuras desconocidas. El modo Microsoft no cambia silenciosamente a PNG. La captura de muestras solo lee al pegar o pulsar el botón, queda en memoria y se exporta explícitamente a JSON. Conviene capturar objetos sintéticos para evitar compartir contenido privado al entregar el archivo de diagnóstico. No se incluyen ni se descargan programas de Microsoft en tiempo de ejecución.

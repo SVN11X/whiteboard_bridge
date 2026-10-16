@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-16T21:25:31.031Z",
+  "browser": "chromium",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.8078.4 Safari/537.36",
+  "note": "Headless Linux, frames during viewport pan; heap is approximate and includes previous runs. Not a hardware guarantee.",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "results": [
+    {
+      "count": 100,
+      "importMs": 76,
+      "interactionMs": 39,
+      "fps": 59.998956539851285,
+      "frameP95Ms": 18,
+      "heapMiB": 9.5367431640625,
+      "renderedObjects": 7,
+      "cdpHeapUsedMiB": 8.608936309814453
+    },
+    {
+      "count": 1000,
+      "importMs": 111,
+      "interactionMs": 47,
+      "fps": 59.480707561796756,
+      "frameP95Ms": 17.399999998509884,
+      "heapMiB": 9.5367431640625,
+      "renderedObjects": 49,
+      "cdpHeapUsedMiB": 16.834308624267578
+    },
+    {
+      "count": 10000,
+      "importMs": 673,
+      "interactionMs": 60,
+      "fps": 60.005217845029996,
+      "frameP95Ms": 18.799999998882413,
+      "heapMiB": 9.5367431640625,
+      "renderedObjects": 49,
+      "cdpHeapUsedMiB": 35.77549743652344
+    }
+  ]
+}

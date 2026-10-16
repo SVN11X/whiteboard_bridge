@@ -2,6 +2,9 @@ import { z } from 'zod';
 
 export const MAX_FILE_BYTES = 32 * 1024 * 1024;
 export const MAX_OBJECTS = 20_000;
+export const MIN_ZOOM = .05;
+export const MAX_ZOOM = 5;
+export const clampZoom = (zoom: number) => Number.isNaN(zoom) ? 1 : Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
 const finite = z.number().finite();
 const coordinate = finite.min(-10_000_000).max(10_000_000);
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/);
@@ -16,7 +19,7 @@ const textProps = { text: z.string().max(20_000), fontSize: finite.min(8).max(30
 const text = base.extend({ type: z.literal('text'), ...textProps });
 const sticky = base.extend({ type: z.literal('sticky'), ...textProps });
 const shape = base.extend({ type: z.literal('shape'), shape: z.enum(['rect', 'ellipse', 'triangle', 'diamond', 'pentagon', 'parallelogram', 'arrow-shape', 'capsule']), ...textProps });
-const line = base.extend({ type: z.literal('line'), arrow: z.enum(['none', 'end', 'both']), fromId: id.nullable(), toId: id.nullable(), reversed: z.boolean(), startAtEnd: z.boolean().default(false) });
+const line = base.extend({ width: finite.min(0).max(100_000), height: finite.min(0).max(100_000), type: z.literal('line'), arrow: z.enum(['none', 'end', 'both']), fromId: id.nullable(), toId: id.nullable(), reversed: z.boolean(), startAtEnd: z.boolean().default(false) });
 const ink = base.extend({ type: z.literal('ink'), tool: z.enum(['pen', 'marker', 'highlighter']), points: z.array(z.object({ x: finite.min(0).max(1), y: finite.min(0).max(1), pressure: finite.min(0).max(1) })).min(1).max(10_000) });
 const image = base.extend({ type: z.literal('image'), dataUrl: z.string().max(8_000_000).regex(/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/), alt: z.string().max(500) });
 const group = base.extend({ type: z.literal('group'), children: z.array(id).min(1).max(MAX_OBJECTS) });
@@ -30,7 +33,7 @@ export const boardSchema = z.object({
   schema: z.literal('whiteboard-bridge'), version: z.literal(2), id,
   name: z.string().trim().min(1).max(120),
   createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
-  viewport: z.object({ x: coordinate, y: coordinate, zoom: finite.min(0.05).max(8) }),
+  viewport: z.object({ x: coordinate, y: coordinate, zoom: finite.min(MIN_ZOOM).max(MAX_ZOOM) }),
   background: backgroundSchema.default({ color: '#ffffff', grid: 'dot' }),
   objects: z.array(objectSchema).max(MAX_OBJECTS),
 }).superRefine((board, ctx) => {
@@ -79,6 +82,10 @@ export function makeObject(type: ObjectType, p: Point, extra: Partial<BoardObjec
 }
 export function parseBoard(value: unknown): Board {
   if (value && typeof value === 'object' && 'version' in value && value.version === 1) return migrateV1(value);
+  // v0.4.0 saved views up to 800%; retain their objects and normalize the old view.
+  if (value && typeof value === 'object' && 'viewport' in value && value.viewport && typeof value.viewport === 'object' && 'zoom' in value.viewport && typeof value.viewport.zoom === 'number' && value.viewport.zoom > MAX_ZOOM && value.viewport.zoom <= 8) {
+    value = { ...value, viewport: { ...value.viewport, zoom: MAX_ZOOM } };
+  }
   const result = boardSchema.safeParse(value);
   if (!result.success) throw new Error(`Proyecto no válido: ${result.error.issues[0]?.message}`);
   return result.data;

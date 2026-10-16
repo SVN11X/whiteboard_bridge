@@ -3,19 +3,19 @@ import { createBoard, makeObject, parseBoard } from '../../src/models/document';
 import { boundsOf } from '../../src/editor/geometry';
 import { decodeWhiteboard, encodeWhiteboard, whiteboardPayload, WhiteboardNativeAdapter, WHITEBOARD_SHAPES } from '../../src/clipboard/whiteboard';
 
-describe('Formato experimental de Whiteboard — datos sintéticos, sin sesión Microsoft', () => {
+describe('Formato de Whiteboard — datos sintéticos, sin sesión Microsoft', () => {
   it('envía notas y figuras separadas en el contenedor HTML y conserva texto escapado como datos', () => {
     const note = makeObject('sticky', { x: 20, y: 40 }, { text: 'Una nota\n<script>no ejecutar</script>', fill: '#ffe6a1' });
     const shape = makeObject('shape', { x: 300, y: 70 }, { shape: 'ellipse', text: 'Editable', rotation: 25 });
     const encoded = encodeWhiteboard([note, shape]);
-    expect(encoded.html).toMatch(/^<whiteboard-tag whiteboardcontent="%7B/); expect(encoded.html).not.toContain('<script>');
+    expect(encoded.warnings).toEqual([]); expect(encoded.html).toMatch(/^<whiteboard-tag whiteboardcontent="%7B/); expect(encoded.html).not.toContain('<script>');
     const raw = whiteboardPayload(encoded.html) as { boardItems: { content: { contentType: string; type?: number } }[] };
     expect(raw.boardItems.map(item => item.content.contentType)).toEqual(['note', 'shape']); expect(raw.boardItems[1].content.type).toBe(34);
     const decoded = decodeWhiteboard(encoded.html, { x: 500, y: 600 })!;
     expect(decoded[0]).toMatchObject({ type: 'sticky', text: note.type === 'sticky' ? note.text : '', x: 500, fill: '#ffe6a1' });
     expect(decoded[1]).toMatchObject({ type: 'shape', shape: 'ellipse', x: 780, rotation: 25 });
     expect(boundsOf(decoded)?.y).toBeCloseTo(600); expect(decoded[1].y - decoded[0].y).toBeCloseTo(30);
-    expect(decoded[0].id).not.toBe(note.id); expect(WhiteboardNativeAdapter.verifiedInMicrosoft).toBe(false);
+    expect(decoded[0].id).not.toBe(note.id); expect(WhiteboardNativeAdapter.verification.automatedMicrosoftTest).toBe(false);
   });
   it('conserva las siete figuras admitidas y sus colores, tamaños y posiciones relativas', () => {
     const objects = Object.keys(WHITEBOARD_SHAPES).map((shape, i) => makeObject('shape', { x: i * 250, y: 20 }, { shape: shape as keyof typeof WHITEBOARD_SHAPES, fill: '#abcdef', stroke: '#123456', strokeWidth: 4, text: shape }));
