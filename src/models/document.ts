@@ -19,7 +19,13 @@ const textProps = { text: z.string().max(20_000), fontSize: finite.min(8).max(30
 const text = base.extend({ type: z.literal('text'), ...textProps });
 const sticky = base.extend({ type: z.literal('sticky'), ...textProps });
 const shape = base.extend({ type: z.literal('shape'), shape: z.enum(['rect', 'ellipse', 'triangle', 'diamond', 'pentagon', 'parallelogram', 'arrow-shape', 'capsule']), ...textProps });
-const line = base.extend({ width: finite.min(0).max(100_000), height: finite.min(0).max(100_000), type: z.literal('line'), arrow: z.enum(['none', 'end', 'both']), fromId: id.nullable(), toId: id.nullable(), reversed: z.boolean(), startAtEnd: z.boolean().default(false) });
+export const ANCHOR_SIDES = ['top', 'right', 'bottom', 'left'] as const;
+export type AnchorSide = typeof ANCHOR_SIDES[number];
+const line = base.extend({
+  fromAnchor: z.enum(ANCHOR_SIDES).nullable().default(null), toAnchor: z.enum(ANCHOR_SIDES).nullable().default(null),
+  routing: z.enum(['orthogonal', 'straight']).default('orthogonal'), followsObjects: z.boolean().default(true),
+  routePoints: z.array(z.object({ x: finite.min(0).max(1), y: finite.min(0).max(1) })).max(24).refine(points => points.length !== 1, 'Una conexión necesita al menos dos puntos.').default([]),
+  bend: z.object({ x: coordinate, y: coordinate }).nullable().default(null), width: finite.min(0).max(100_000), height: finite.min(0).max(100_000), type: z.literal('line'), arrow: z.enum(['none', 'end', 'both']), fromId: id.nullable(), toId: id.nullable(), reversed: z.boolean(), startAtEnd: z.boolean().default(false) });
 const ink = base.extend({ type: z.literal('ink'), tool: z.enum(['pen', 'marker', 'highlighter']), points: z.array(z.object({ x: finite.min(0).max(1), y: finite.min(0).max(1), pressure: finite.min(0).max(1) })).min(1).max(10_000) });
 const image = base.extend({ type: z.literal('image'), dataUrl: z.string().max(8_000_000).regex(/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/), alt: z.string().max(500) });
 const group = base.extend({ type: z.literal('group'), children: z.array(id).min(1).max(MAX_OBJECTS) });
@@ -43,6 +49,7 @@ export const boardSchema = z.object({
   let pointCount = 0, imageBytes = 0;
   for (const o of board.objects) {
     if (o.type === 'ink') pointCount += o.points.length;
+    if (o.type === 'line') pointCount += o.routePoints.length;
     if (o.type === 'image') imageBytes += o.dataUrl.length;
     if (o.groupId && (map.get(o.groupId)?.type !== 'group' || !(map.get(o.groupId) as z.infer<typeof group>).children.includes(o.id))) error(`Grupo inválido: ${o.id}`);
     if (o.type === 'group') {
@@ -57,7 +64,7 @@ export const boardSchema = z.object({
       visited.add(current.id); current = map.get(current.groupId);
     }
   }
-  if (pointCount > 500_000) error('Demasiados puntos de tinta.');
+  if (pointCount > 500_000) error('Demasiados puntos de tinta o conexiones.');
   if (imageBytes > 24_000_000) error('Demasiados datos de imágenes.');
 });
 export type Board = z.infer<typeof boardSchema>;
@@ -73,7 +80,7 @@ export function makeObject(type: ObjectType, p: Point, extra: Partial<BoardObjec
     text: { ...typography, width: 300, height: 80, text: '', strokeWidth: 0 },
     sticky: { ...typography, width: 200, height: 200, fill: '#ffe6a1', textColor: '#242424', strokeWidth: 0, text: '' },
     shape: { ...typography, shape: 'rect', align: 'center' },
-    line: { height: 80, fill: '#24574e', arrow: 'end', fromId: null, toId: null, reversed: false, startAtEnd: false, strokeWidth: 3 },
+    line: { fromAnchor: null, toAnchor: null, routing: 'orthogonal', followsObjects: true, routePoints: [], bend: null, height: 80, fill: '#24574e', arrow: 'end', fromId: null, toId: null, reversed: false, startAtEnd: false, strokeWidth: 3 },
     ink: { tool: 'pen', points: [{ x: 0, y: 0, pressure: 0.5 }], strokeWidth: 3 },
     image: { dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==', alt: 'Imagen' },
     group: { children: [] },

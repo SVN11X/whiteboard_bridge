@@ -4,7 +4,7 @@ import { useEditor } from '../editor/store';
 import { makeObject, parseBoard, type Board, type Point } from '../models/document';
 import { barColorStyle, DEFAULT_BAR_COLORS, parseBarColors, type BarColors } from '../models/appearance';
 import { IMPORT_ACCEPT, importedProject, readImportFile, serializeProject } from '../models/projectFile';
-import { descendants, screenToWorld } from '../editor/geometry';
+import { boundsOf, descendants, screenToWorld } from '../editor/geometry';
 import { TOOLS, type Tool, type ToolOptions } from '../editor/tools';
 import { copyObjects, readObjects, type CopyMode, type CopyResult } from '../clipboard/clipboard';
 import { db, getSetting, listBoards, saveBoard, setSetting } from '../persistence/database';
@@ -139,7 +139,7 @@ export default function App() {
     <input ref={importInput} hidden type="file" accept={IMPORT_ACCEPT} aria-label="Archivo de proyecto" onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void importFile(file); }}/>
     {modal === 'copy' && <CopyDialog close={() => setModal(null)} mode={mode} setMode={setMode} copy={copy} count={selectedCount} result={lastCopy} lab={() => setModal('lab')}/>}
     {modal === 'share' && <ShareDialog close={() => setModal(null)} exportAs={format => { void exportAs(format); setModal(null); }} copy={() => setModal('copy')} selected={selectedCount}/>}
-    {modal === 'templates' && <TemplatesDialog close={() => setModal(null)} add={objects => { useEditor.getState().add(objects); setTool('select'); }} point={centerPoint()}/>}
+    {modal === 'templates' && <TemplatesDialog close={() => setModal(null)} add={objects => { const s = useEditor.getState(); s.add(objects); setTool('select'); const b = boundsOf(objects), rect = document.querySelector('.canvas-pane')?.getBoundingClientRect(); if (b && rect) { const zoom = Math.max(.05, Math.min(1, (rect.width - 80) / b.width, (rect.height - 160) / b.height)); s.viewport({ x: (rect.width - b.width * zoom) / 2 - b.x * zoom, y: (rect.height - b.height * zoom) / 2 - b.y * zoom, zoom }); } }} point={centerPoint()}/>}
     {modal === 'link' && <LinkDialog close={() => setModal(null)} add={objects => { useEditor.getState().add(objects); setTool('select'); }} point={centerPoint()}/>}
     {modal === 'formats' && <FileFormats close={() => setModal(null)} importFile={() => importInput.current?.click()}/>}
     {modal === 'lab' && <CompatibilityLab close={() => setModal(null)} lastCopy={lastCopy} notify={notify}/>}

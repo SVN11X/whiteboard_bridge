@@ -1,6 +1,6 @@
-# Validación de v0.4.1
+# Validación de v0.5.0
 
-Fecha: 16-10-2026. Base remota `c42b4410e9cb7975df6f80155e13579c20479dd7`. Ejecutor Linux con Node 24.19.0 y npm 11.9.0. No se añaden ni actualizan dependencias.
+Fecha: 16-10-2026. Base remota `771ecb1227b11b2846f2e2813ab052e4543a7889`. Ejecutor Linux con Node 24.19.0 y npm 11.9.0. No se añaden ni actualizan dependencias.
 
 ## Comandos
 
@@ -17,31 +17,29 @@ En este entorno se utiliza Chromium con `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`; e
 | Comprobación | Resultado |
 | --- | --- |
 | TypeScript y ESLint | Aprobados, sin errores ni advertencias de lint |
-| Vitest | 40 pruebas en cuatro archivos |
+| Vitest | 50 pruebas aprobadas en cinco archivos |
 | Compilación, PWA y rutas | Base `/whiteboard_bridge/`, cuatro enlaces y nueve recursos offline válidos |
-| Playwright completo | 25 pruebas aprobadas sin reintentos, 42,6 s |
-| Casos finales después de la revisión | 5 aprobados sin reintentos, 6,0 s |
-| Revisión visual | Escritorio 1440 px, tableta 820 px y móvil 360 px; barras blancas/personalizadas, puntos de conexión y PNG |
-| Microsoft Whiteboard | El usuario confirmó el pegado de v0.4.0; no se atribuye a una prueba automatizada autenticada |
+| Playwright completo | 29 pruebas aprobadas, sin reintentos, 48,1 s |
+| Revisión visual | Escritorio 1440 px, tableta 820 px y móvil 360 px; paletas, selección, codos, galería y PNG |
+| Microsoft Whiteboard | Se conserva el adaptador previo; no se ejecuta una sesión autenticada nueva |
 | Publicación remota | No realizada; se entrega el parche para incorporar al repositorio |
 
-La ejecución completa se conserva en `evidence/compact-v0.4.1-e2e.json`; las medidas de 100/1.000/10.000 objetos, en `compact-v0.4.1-benchmark.json`. Esas medidas corresponden a figuras simples con descarte de objetos fuera de la vista; no son una garantía de rendimiento en otro hardware.
+La ejecución completa se conserva en `evidence/routing-v0.5-e2e.json`; las medidas de 100/1.000/10.000 objetos, en `routing-v0.5-benchmark.json`. Esas medidas corresponden a figuras simples con descarte fuera de la vista; no garantizan el rendimiento en otro hardware o con todos los objetos visibles.
 
 ## Casos de esta actualización
 
-- Alto real de cabecera, barra inferior y zoom de 40 px en escritorio; fondo blanco también con tema oscuro.
-- Edición independiente de colores, contraste de texto e iconos, persistencia al recargar y restauración a blanco.
-- Ausencia del contador visual; las pruebas consultan metadatos del SVG para comprobar importaciones sin añadir un contador a la interfaz.
-- Límite del 500% con botones, Ctrl+rueda y eventos táctiles reales de dos dedos enviados por CDP. Archivos antiguos con vista de 800% se abren al 500% sin perder objetos.
-- Flecha hasta el borde, movimiento de las figuras, cambio de destino mediante el extremo y deshacer esa reconexión.
-- Arrastre desde un punto de conexión y flecha doble vertical unida automáticamente a ambas figuras; el color modifica el trazo y sus puntas.
-- Elipse rotada, triángulo, eliminación del origen, dirección vertical exacta y exportación de flechas gruesas sin recortes.
-- Se conservan las regresiones de edición directa, archivos, portapapeles, fondos, accesibilidad de controles, tema, funcionamiento offline y rendimiento.
-
-Después de la suite completa se amplió la comprobación de contraste a los botones de la cabecera y se corrigió el margen de exportación de flechas gruesas. Se repiten los cuatro casos de barras/conectores/zoom y el caso del portapapeles Microsoft sobre la compilación final. El resultado se conserva en `evidence/compact-v0.4.1-final-targeted.json`.
+- La paleta de figuras y la barra de selección son blancas incluso con tema oscuro; se ven los doce iconos, incluidas líneas y flechas. Heredan el color configurado para la barra inferior.
+- Lados de unión fijos al mover o rotar figuras; los dieciséis pares de lados producen segmentos ortogonales. Los extremos permanecen en el contorno.
+- El modo **Fijar conexión en el lienzo** conserva exactamente el recorrido al fijarlo y cuando se mueve una figura. Se comprueban persistencia al recargar, arrastre manual y deshacer.
+- El codo manual se conserva al mover figuras; se puede reconectar un extremo a otro lado, deshacerlo y cambiar lado/recorrido desde Propiedades. Elegir Libre desconecta ese extremo.
+- Exportación de polilíneas y orientación de las dos puntas; texto de figuras centrado verticalmente, incluido el rombo del diagrama de flujo.
+- Esquema de conexiones: ida y vuelta, valores anteriores por defecto, rechazo de coordenadas no normalizadas, un punto aislado o más de 24 puntos. Duplicar remapea referencias y desplaza el codo.
+- Doce plantillas con IDs nuevos por inserción, objetos y conexiones editables, búsqueda, categorías, encuadre completo y edición con un clic tras insertar. Deshacer elimina la inserción completa.
+- La selección de líneas sigue su trazo real, evitando que un cuadro transparente grande intercepte clics sobre las figuras.
+- Se conservan las regresiones de archivos, portapapeles, edición directa, grupos, colores, zoom de 500%, fondo, teclado, offline y rendimiento.
 
 ## Evidencia visual y límites
 
-Capturas propias en `compact-v0.4.1-desktop.png`, `compact-v0.4.1-anchors.png`, `compact-v0.4.1-colors.png`, `compact-v0.4.1-820.png` y `compact-v0.4.1-360.png`; exportación raster en `compact-v0.4.1-export.png`. `compact-v0.4.1-visual.json` registra medidas reales y la comparación aproximada con las capturas aportadas, que no se redistribuyen.
+Capturas propias `routing-v0.5-palette-{1440,820,360}.png`, `routing-v0.5-elbow-selected.png`, `routing-v0.5-fixed-after-move.png`, `routing-v0.5-templates-{top,bottom,360}.png` y `routing-v0.5-flow.png`. La exportación raster se conserva en `routing-v0.5-export.png`. Se inspeccionaron visualmente estos archivos; `routing-v0.5-visual.json` registra medidas, doce plantillas, ausencia de desbordamiento móvil y ausencia de errores de página. Las capturas aportadas por el usuario no se redistribuyen.
 
-La revisión automatizada usa Chromium en este ejecutor, aunque su user-agent indique Windows. No verifica un stylus ni un dispositivo táctil físico. El bundle principal conserva el aviso de Vite por superar 500 kB minificados. Los resultados v0.4.0 se conservan como evidencia histórica; la confirmación manual nueva se documenta en WHITEBOARD_CLIPBOARD.md.
+El recorrido evita los límites de origen y destino; para rodear una tercera figura se ajusta el codo manualmente. La revisión usa Chromium en Linux, aunque su user-agent indique Windows; no verifica un stylus ni un dispositivo táctil físico. El bundle principal conserva el aviso de Vite por superar 500 kB minificados. La evidencia de versiones anteriores se mantiene como historial.

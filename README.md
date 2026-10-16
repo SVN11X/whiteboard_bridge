@@ -1,4 +1,4 @@
-# Whiteboard Bridge · v0.4.1
+# Whiteboard Bridge · v0.5.0
 
 Pizarra web local y laboratorio de interoperabilidad, preparada para **GitHub Pages**. Interfaz en español, React + TypeScript, sin cuenta, backend, claves ni bibliotecas desde CDN. Los objetos se editan y conservan dentro de Bridge.
 
@@ -6,14 +6,16 @@ Pizarra web local y laboratorio de interoperabilidad, preparada para **GitHub Pa
 
 ## Espacio de trabajo y edición directa
 
-La versión 0.4.1 reduce la cabecera de 52 a 40 px y las barras inferiores de 56 a 40 px en escritorio, siguiendo la proporción de las capturas. Incluye lienzo blanco de puntos, herramientas flotantes en la parte inferior, paletas de notas/reacciones/figuras y zoom abajo a la derecha. El panel de propiedades se abre bajo petición. Una primera visita comienza con una pizarra vacía y las pizarras existentes se conservan.
+La versión 0.5.0 conserva la reducción de la cabecera de 52 a 40 px y las barras inferiores de 56 a 40 px en escritorio, siguiendo la proporción de las capturas. Incluye lienzo blanco de puntos, herramientas flotantes en la parte inferior, paletas de notas/reacciones/figuras y zoom abajo a la derecha. El panel de propiedades se abre bajo petición. Una primera visita comienza con una pizarra vacía y las pizarras existentes se conservan.
 
 - Un clic en una nota o figura permite escribir sobre ella. Arrastrar mueve el objeto. Enter o F2 edita la selección; Ctrl+Enter guarda, Escape cancela y Enter añade otra línea.
 - El cambio de texto se deshace como una sesión completa. Se conserva la edición desde Propiedades como alternativa.
 - **Configuración → Colores de las barras** permite cambiar por separado la barra superior y las inferiores/zoom. Son blancas por defecto, con contraste automático y colores guardados en este navegador. El tema no cambia esos colores.
 - Configuración ofrece importación, exportación, formato del fondo, propiedades, tema y diagnóstico. Los nueve fondos y su color se guardan en `.wbridge`.
 - El zoom va de 5 a **500 %**. Se retira el contador visible de objetos.
-- Las plantillas, reacciones, enlaces y el temporizador funcionan localmente. Compartir descarga una copia editable o una imagen; no crea una sesión colaborativa. Los comentarios son notas locales. No se implementan componentes Loop.
+- Hay **12 plantillas editables**, con búsqueda, categorías y vistas previas reales: lluvia de ideas, plan de trabajo, mapa de ideas, DAFO, retrospectiva, prioridades, plan de proyecto, agenda, línea de tiempo, flujo, empatía y comparación. Al insertarlas se encuadra su contenido; un clic edita cada nota o figura.
+- Las paletas de herramientas y la barra de selección comparten el fondo configurable de la barra inferior, blanco por defecto incluso con tema oscuro.
+- Las reacciones, enlaces y el temporizador funcionan localmente. Compartir descarga una copia editable o una imagen; no crea una sesión colaborativa. Los comentarios son notas locales. No se implementan componentes Loop.
 
 ## Copiar hacia Microsoft Whiteboard
 
@@ -51,7 +53,7 @@ npm run check
 npm run preview
 ```
 
-Vista de producción: `http://127.0.0.1:4173/whiteboard_bridge/`. `npm run check` comprueba tipos, lint, 40 pruebas unitarias/integración y compilación, incluidas las rutas y recursos de Pages. Las pruebas adicionales se describen en [TESTING.md](docs/TESTING.md).
+Vista de producción: `http://127.0.0.1:4173/whiteboard_bridge/`. `npm run check` comprueba tipos, lint, 50 pruebas unitarias/integración y compilación, incluidas las rutas y recursos de Pages. Las pruebas adicionales se describen en [TESTING.md](docs/TESTING.md).
 
 ## Publicar en GitHub Pages
 
@@ -71,7 +73,7 @@ La versión 0.3.1 corrige la base a `/whiteboard_bridge/`. La configuración ant
 - Un clic edita texto; un arrastre mueve el objeto. El panel de propiedades opcional ofrece colores, tamaño, posición, rotación, opacidad, bloqueo, alineación y capas.
 - Espacio + arrastrar desplaza. Ctrl + rueda amplía sobre el cursor. Dos dedos permiten desplazar y ampliar. El botón Ajustar centra el contenido.
 - Los tiradores permiten redimensionar y rotar; el panel numérico ofrece una alternativa por teclado.
-- Seleccionar **Conector**, pulsar un objeto de origen y otro de destino. La flecha llega al borde y se actualiza al mover, redimensionar o rotar las figuras. También se puede arrastrar desde un punto azul de la figura seleccionada, o dibujar una flecha entre dos figuras para conectarlas. Los extremos de una línea seleccionada se pueden arrastrar a otro objeto; Alt evita la unión automática.
+- Seleccionar **Conector**, pulsar un objeto de origen y otro de destino. El lado de unión queda fijo hasta que lo cambies. Los recorridos tienen codos de 90° y se ajustan con el cuadrado amarillo o arrastrando la línea. **Fijar conexión en el lienzo**, en la barra de selección, la mantiene completamente inmóvil aunque muevas sus figuras. El panel de propiedades permite volver al recorrido recto o automático. También se puede arrastrar desde un punto azul de la figura seleccionada, o dibujar una flecha entre dos figuras para conectarlas. Los extremos de una línea seleccionada se pueden arrastrar a otro objeto; Alt evita la unión automática.
 - Ctrl + Z / Ctrl + Mayús + Z deshace/rehace; Ctrl + D duplica; Ctrl + G agrupa; Ctrl + Mayús + G desagrupa. En macOS se usa ⌘.
 - Importar imágenes desde el botón o arrastrarlas al lienzo. Se aceptan PNG/JPEG/WebP/GIF y se normalizan a un fotograma PNG local.
 - Pulsar el nombre de la pizarra para crear, abrir, duplicar, eliminar, respaldar o recuperar una versión. Para renombrar, abrir **Configuración → Ayuda → Nombre de esta pizarra**.
@@ -105,6 +107,7 @@ La PWA funciona offline después de que se instale su caché. Las actualizacione
 ## Documentación
 
 - [Portapapeles de Whiteboard, evidencia y captura](docs/WHITEBOARD_CLIPBOARD.md)
+- [Conexiones con puntos fijos y codos](docs/CONNECTORS.md)
 - [Formato editable e importación/exportación](docs/FILE_FORMAT.md)
 - [Auditoría del prototipo](docs/AUDIT.md)
 - [Arquitectura y elección del motor](docs/ARCHITECTURE.md)

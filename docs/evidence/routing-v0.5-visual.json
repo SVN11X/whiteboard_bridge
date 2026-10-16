@@ -1,0 +1,66 @@
+{
+  "version": "0.5.0",
+  "date": "2026-10-16T22:24:59.958Z",
+  "runtime": "v24.19.0",
+  "screenshots": [
+    "elbow-selected.png",
+    "fixed-after-move.png",
+    "palette-1440.png",
+    "palette-820.png",
+    "palette-360.png",
+    "templates-top.png",
+    "templates-bottom.png",
+    "flow.png",
+    "templates-360.png"
+  ],
+  "errors": [],
+  "measurements": [
+    {
+      "width": 1440,
+      "background": "rgb(255, 255, 255)",
+      "icons": 12,
+      "box": {
+        "x": 571,
+        "y": 718,
+        "width": 341,
+        "height": 116,
+        "top": 718,
+        "right": 912,
+        "bottom": 834,
+        "left": 571
+      }
+    },
+    {
+      "width": 820,
+      "background": "rgb(255, 255, 255)",
+      "icons": 12,
+      "box": {
+        "x": 261,
+        "y": 718,
+        "width": 341,
+        "height": 116,
+        "top": 718,
+        "right": 602,
+        "bottom": 834,
+        "left": 261
+      }
+    },
+    {
+      "width": 360,
+      "background": "rgb(255, 255, 255)",
+      "icons": 12,
+      "box": {
+        "x": 12,
+        "y": 728,
+        "width": 278,
+        "height": 104,
+        "top": 728,
+        "right": 290,
+        "bottom": 832,
+        "left": 12
+      }
+    }
+  ],
+  "templateCount": 12,
+  "mobileOverflow": false
+}

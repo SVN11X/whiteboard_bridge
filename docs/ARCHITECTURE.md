@@ -8,6 +8,8 @@
 | `src/models/document.ts` | Unión discriminada TypeScript, Zod, límites, referencias, migración v1→v2 |
 | `src/editor/store.ts` | Estado Zustand, transacciones de historial, grupos, transformaciones y capas |
 | `src/editor/geometry.ts` | Coordenadas, zoom, límites rotados, conectores e índice espacial |
+| `src/editor/routing.ts` | Rutas con segmentos ortogonales y codo manual |
+| `src/templates/catalog.ts` | Doce plantillas de objetos editables con conexiones |
 | `src/editor/Canvas.tsx` | SVG, Pointer Events, selección, gestos y edición directa |
 | `src/graphics/render.ts` | Primitivas seguras compartidas por pantalla, SVG y PNG |
 | `src/clipboard/` | Adaptadores de texto, HTML, PNG y formato propio; lectura explícita |
@@ -21,7 +23,7 @@ El documento no depende de Microsoft. El módulo `src/clipboard/whiteboard.ts` i
 
 ## Documento y relaciones
 
-Versión 2 con `schema: whiteboard-bridge`. El fondo tiene color y cuadrícula; al abrir documentos anteriores se asigna blanco con puntos. Se amplía el conjunto de figuras, por lo que una aplicación anterior a 0.4.0 puede rechazar las figuras nuevas. Cada objeto tiene identidad, posición, dimensiones, rotación, zIndex, opacidad, bloqueo y estilos. Los tipos añaden texto, figura, extremos de línea, puntos normalizados de tinta, raster data URL o hijos de grupo. `groupId` e hijos deben concordar; se rechazan ciclos, referencias rotas, IDs duplicados y más de 16 niveles. Los conectores apuntan a IDs de objetos y sus extremos se recalculan en el contorno real de las figuras, considerando su rotación. `shapePolygon` comparte vértices entre geometría y render. Las líneas horizontales/verticales admiten una dimensión cero sin una inclinación artificial.
+Versión 2 con `schema: whiteboard-bridge`. El fondo tiene color y cuadrícula; al abrir documentos anteriores se asigna blanco con puntos. Se amplía el conjunto de figuras, por lo que una aplicación anterior a 0.4.0 puede rechazar las figuras nuevas. Cada objeto tiene identidad, posición, dimensiones, rotación, zIndex, opacidad, bloqueo y estilos. Los tipos añaden texto, figura, extremos de línea, puntos normalizados de tinta, raster data URL o hijos de grupo. `groupId` e hijos deben concordar; se rechazan ciclos, referencias rotas, IDs duplicados y más de 16 niveles. Los conectores apuntan a IDs de objetos y a lados fijos de su contorno, considerando su rotación. La ruta se almacena como puntos normalizados, con un codo opcional en coordenadas del lienzo. `followsObjects: false` conserva toda la geometría al mover las figuras. El router automático puntúa rutas ortogonales y evita atravesar los límites de los dos objetos unidos; el codo manual permite ajustar el paso por otros objetos. `shapePolygon` comparte vértices entre geometría y render. Las líneas horizontales/verticales admiten una dimensión cero sin una inclinación artificial.
 
 Los grupos usan coordenadas absolutas para sus miembros; una transformación de grupo se aplica a los descendientes y se recalcula el límite agregado. Las copias renuevan IDs y remapean grupos y conectores. Las referencias que salen de una selección copiada se eliminan del payload portable. El tamaño y rotación individuales se conservan dentro del esquema.
 
@@ -31,7 +33,7 @@ Los grupos usan coordenadas absolutas para sus miembros; una transformación de 
 
 Una rejilla dispersa de celdas de 500 unidades devuelve candidatos al viewport, con 120 píxeles de margen. Los objetos de más de 100 celdas usan un bucket adicional para evitar explotar el índice. Las coordenadas negativas se indexan con `floor`. La lista de capas se pagina a 100 elementos. `ObjectView` es memoizado; el índice se reconstruye al cambiar los objetos, no al desplazar la vista.
 
-El arrastre previsualiza el estado y produce una única transacción al soltar. Cancelar el puntero revierte la transacción. Undo/redo usa snapshots inmutables y referencias compartidas, hasta 50 versiones o 8 si hay más de 5.000 objetos. La escritura en el lienzo se agrupa como una transacción por sesión; los campos del inspector conservan su edición por cambio.
+El arrastre previsualiza el estado y produce una única transacción al soltar. Arrastrar una conexión unida ajusta su codo; arrastrar una fijada al lienzo mueve toda la ruta. Un clic sin arrastre sobre una pieza de una selección múltiple la selecciona individualmente y permite editarla. Cancelar el puntero revierte la transacción. Undo/redo usa snapshots inmutables y referencias compartidas, hasta 50 versiones o 8 si hay más de 5.000 objetos. La escritura en el lienzo se agrupa como una transacción por sesión; los campos del inspector conservan su edición por cambio.
 
 Lazo: selecciona por el centro del objeto, criterio explícito. El área rectangular usa intersección de límites rotados. El borrador elimina objetos completos. Alt + clic permite seleccionar un miembro de grupo. No se modela borrado parcial de tinta.
 

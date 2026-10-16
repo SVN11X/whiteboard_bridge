@@ -1,4 +1,5 @@
-import { clampZoom, type BoardObject, type Point, type Viewport } from '../models/document';
+import { clampZoom, type BoardObject, type Point, type Viewport, type AnchorSide } from '../models/document';
+import { orthogonalRoute } from './routing';
 import { shapePolygon } from '../graphics/shapes';
 export type Bounds = { x: number; y: number; width: number; height: number };
 export const center = (o: Bounds): Point => ({ x: o.x + o.width / 2, y: o.y + o.height / 2 });
@@ -41,14 +42,22 @@ export function isLocked(o: BoardObject, objects: BoardObject[]): boolean {
 }
 export type LineObject = Extract<BoardObject, { type: 'line' }>;
 export const canConnect = (o: BoardObject) => ['shape', 'sticky', 'text', 'image'].includes(o.type);
+export function lineWorldPoints(o: LineObject): Point[] {
+  const points = o.routePoints.length > 1 ? o.routePoints.map(p => ({ x: o.x + p.x * o.width, y: o.y + p.y * o.height })) : (() => {
+    const left = { x: o.x, y: o.y + (o.reversed ? o.height : 0) }, right = { x: o.x + o.width, y: o.y + (o.reversed ? 0 : o.height) };
+    return o.startAtEnd ? [right, left] : [left, right];
+  })();
+  return points.map(p => rotatePoint(p, center(o), o.rotation));
+}
 export function lineEndpoints(o: LineObject): { start: Point; end: Point } {
-  const left = { x: o.x, y: o.y + (o.reversed ? o.height : 0) }, right = { x: o.x + o.width, y: o.y + (o.reversed ? 0 : o.height) };
-  return { start: rotatePoint(o.startAtEnd ? right : left, center(o), o.rotation), end: rotatePoint(o.startAtEnd ? left : right, center(o), o.rotation) };
+  const points = lineWorldPoints(o); return { start: points[0], end: points.at(-1)! };
 }
-export function lineBetween(o: LineObject, start: Point, end: Point): LineObject {
-  const dx = end.x - start.x, dy = end.y - start.y;
-  return { ...o, x: Math.min(start.x, end.x), y: Math.min(start.y, end.y), width: Math.abs(dx), height: Math.abs(dy), rotation: 0, startAtEnd: dx < 0, reversed: dx ? dx * dy < 0 : dy < 0 };
+export function lineFromPoints(o: LineObject, points: Point[]): LineObject {
+  const x = Math.min(...points.map(p => p.x)), y = Math.min(...points.map(p => p.y)), width = Math.max(...points.map(p => p.x)) - x, height = Math.max(...points.map(p => p.y)) - y;
+  const start = points[0], end = points.at(-1)!;
+  return { ...o, x, y, width, height, rotation: 0, startAtEnd: end.x < start.x, reversed: end.x !== start.x ? (end.x - start.x) * (end.y - start.y) < 0 : end.y < start.y, routePoints: points.map(p => ({ x: width ? Math.max(0, Math.min(1, (p.x - x) / width)) : 0, y: height ? Math.max(0, Math.min(1, (p.y - y) / height)) : 0 })) };
 }
+export const lineBetween = (o: LineObject, start: Point, end: Point) => lineFromPoints(o, [start, end]);
 export function connectionAnchor(o: BoardObject, toward: Point): Point {
   const pivot = center(o), local = rotatePoint(toward, pivot, -o.rotation);
   const dx = local.x - pivot.x, dy = local.y - pivot.y, hw = o.width / 2, hh = o.height / 2;
@@ -76,9 +85,36 @@ export function connectionAnchor(o: BoardObject, toward: Point): Point {
   }
   return rotatePoint({ x: pivot.x + dx * t, y: pivot.y + dy * t }, pivot, o.rotation);
 }
-export function resolveConnector(o: LineObject, from?: BoardObject, to?: BoardObject): LineObject {
-  const free = lineEndpoints(o), start = from ? center(from) : free.start, end = to ? center(to) : free.end;
-  return lineBetween({ ...o, fromId: from?.id ?? null, toId: to?.id ?? null }, from ? connectionAnchor(from, end) : start, to ? connectionAnchor(to, start) : end);
+export const SIDE_NAMES: Record<AnchorSide, string> = { top: 'arriba', right: 'derecha', bottom: 'abajo', left: 'izquierda' };
+const sideVectors: Record<AnchorSide, Point> = { top: { x: 0, y: -1 }, right: { x: 1, y: 0 }, bottom: { x: 0, y: 1 }, left: { x: -1, y: 0 } };
+export function portPosition(o: BoardObject, side: AnchorSide): Point {
+  const c = center(o), d = sideVectors[side];
+  return connectionAnchor(o, rotatePoint({ x: c.x + d.x * o.width, y: c.y + d.y * o.height }, c, o.rotation));
+}
+export function facingSide(o: BoardObject, toward: Point): AnchorSide {
+  const local = rotatePoint(toward, center(o), -o.rotation), dx = (local.x - center(o).x) / Math.max(1, o.width), dy = (local.y - center(o).y) / Math.max(1, o.height);
+  return Math.abs(dx) >= Math.abs(dy) ? dx >= 0 ? 'right' : 'left' : dy >= 0 ? 'bottom' : 'top';
+}
+export function nearestSide(o: BoardObject, p: Point, toward?: Point): AnchorSide {
+  const local = rotatePoint(p, center(o), -o.rotation), c = center(o);
+  if (toward && Math.abs(local.x - c.x) < o.width * .22 && Math.abs(local.y - c.y) < o.height * .22) return facingSide(o, toward);
+  return (Object.keys(sideVectors) as AnchorSide[]).reduce((best, side) => { const a = portPosition(o, best), b = portPosition(o, side); return Math.hypot(p.x - a.x, p.y - a.y) <= Math.hypot(p.x - b.x, p.y - b.y) ? best : side; }, 'top');
+}
+function cardinal(vector: Point): Point { return Math.abs(vector.x) >= Math.abs(vector.y) ? { x: Math.sign(vector.x) || 1, y: 0 } : { x: 0, y: Math.sign(vector.y) || 1 }; }
+function portDirection(o: BoardObject, side: AnchorSide): Point {
+  const c = center(o), d = sideVectors[side], p = rotatePoint({ x: c.x + d.x, y: c.y + d.y }, c, o.rotation); return cardinal({ x: p.x - c.x, y: p.y - c.y });
+}
+export function resolveConnector(o: LineObject, from?: BoardObject, to?: BoardObject, force = false): LineObject {
+  const refs = { fromId: from?.id ?? null, toId: to?.id ?? null };
+  if (!o.followsObjects && !force) return { ...o, ...refs };
+  const points = lineWorldPoints(o), free = lineEndpoints(o);
+  const fromAnchor = from ? o.fromAnchor ?? facingSide(from, to ? center(to) : free.end) : null;
+  const toAnchor = to ? o.toAnchor ?? facingSide(to, from ? center(from) : free.start) : null;
+  const start = o.followsObjects && from && fromAnchor ? portPosition(from, fromAnchor) : free.start, end = o.followsObjects && to && toAnchor ? portPosition(to, toAnchor) : free.end;
+  const startDirection = o.followsObjects && from && fromAnchor ? portDirection(from, fromAnchor) : cardinal({ x: (points[1]?.x ?? end.x) - free.start.x, y: (points[1]?.y ?? end.y) - free.start.y });
+  const endDirection = o.followsObjects && to && toAnchor ? portDirection(to, toAnchor) : cardinal({ x: (points.at(-2)?.x ?? start.x) - free.end.x, y: (points.at(-2)?.y ?? start.y) - free.end.y });
+  const route = o.routing === 'straight' ? [start, end] : orthogonalRoute(start, end, startDirection, endDirection, o.followsObjects ? [from, to].filter((x): x is BoardObject => !!x).map(rotatedBounds) : [], o.bend);
+  return lineFromPoints({ ...o, ...refs, fromAnchor, toAnchor }, route);
 }
 export function reconcile(objects: BoardObject[]): BoardObject[] {
   const map = new Map(objects.map(o => [o.id, o]));

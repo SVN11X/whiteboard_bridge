@@ -18,7 +18,7 @@
 - El tema oscuro cambia paneles y diálogos; las barras conservan sus colores configurables, blancos por defecto; el papel del lienzo se mantiene claro para que los colores reales del documento y sus exportaciones sigan siendo legibles.
 - Textos planos con estilos por objeto. No hay texto enriquecido por palabra ni tipografía descargada. El ajuste de líneas es aproximado según tamaño de fuente; puede diferir entre sistemas.
 - Redimensionar selección usa sus límites alineados a ejes. Los grupos conservan miembros, y su rotación se aplica a cada descendiente. No existe un marco local independiente para grupos.
-- Conectores rectos anclados al contorno, con puntos de conexión y extremos que se pueden volver a unir. No evitan obstáculos ni calculan rutas alrededor de figuras superpuestas.
+- Conexiones con lados fijos y codos de 90°. El recorrido automático evita los límites de origen y destino, pero no calcula una ruta global alrededor de todas las figuras de la pizarra. El codo se puede ajustar manualmente. Los lados iniciales son arriba/derecha/abajo/izquierda; el modo fijo en lienzo inmoviliza la conexión completa.
 - Las imágenes se normalizan y GIF queda como un fotograma; no se admite SVG importado ni URLs remotas.
 - PDF no implementado: se prioriza una exportación local verificable SVG/PNG sobre una conversión parcial no comprobada. El usuario puede usar las herramientas de impresión del navegador, sin promesa de PDF multipágina exacto.
 - Límites JSON y geometría documentados en SECURITY.md. PNG puede rechazar selecciones demasiado extensas; SVG permite conservar su representación vectorial.
@@ -34,6 +34,6 @@ El namespace web personalizado requiere que el receptor lo admita; no obliga a M
 
 No se sostiene que todo intercambio editable sea imposible en cualquier escenario. Lo que falta es evidencia suficiente y un contrato reproducible para implementarlo legítimamente.
 
-## Entorno de v0.4.1
+## Entorno de v0.5.0
 
 La disposición se adapta a las capturas, pero no se replica el servicio de Microsoft: Compartir entrega un archivo, los comentarios son locales y no se incluyen cuentas, coautoría ni Loop. Los enlaces y videos se añaden como enlaces editables que se pueden abrir; no se incrustan iframes. Las cuadrículas se conservan en WBRIDGE; las exportaciones SVG/PNG continúan representando objetos sobre su fondo de exportación.

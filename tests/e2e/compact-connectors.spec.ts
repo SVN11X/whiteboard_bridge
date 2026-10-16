@@ -76,7 +76,8 @@ test('conector visible al borde, sigue al mover figuras y permite volver a unir 
   let value = line(await project(page, info, 'connected')); expect(value.fromId).toBe(board.objects[0].id); expect(value.toId).toBe(board.objects[1].id); expect(value.x).toBeCloseTo(360); expect(value.width).toBeCloseTo(290);
   await drag(page, { x: pane.x + 220, y: pane.y + 240 }, { x: pane.x + 280, y: pane.y + 280 });
   value = line(await project(page, info, 'moved')); expect(value.x).toBeCloseTo(420); expect(value.width).toBeCloseTo(230);
-  await page.locator('[data-object-type="line"]').click();
+  const point = await page.locator('[data-line-path]').evaluate(element => { const path = element as SVGPathElement, p = path.getPointAtLength(path.getTotalLength() / 2), m = path.getScreenCTM()!; return { x: p.x * m.a + p.y * m.c + m.e, y: p.x * m.b + p.y * m.d + m.f }; });
+  await page.mouse.click(point.x, point.y);
   const end = (await page.locator('[data-line-end="end"]').boundingBox())!;
   await drag(page, { x: end.x + end.width / 2, y: end.y + end.height / 2 }, { x: pane.x + 740, y: pane.y + 510 });
   value = line(await project(page, info, 'reattached')); expect(value.fromId).toBe(board.objects[0].id); expect(value.toId).toBe(board.objects[2].id);

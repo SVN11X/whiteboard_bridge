@@ -64,3 +64,9 @@ El esquema 2 admite `background: { color: "#ffffff", grid: "dot" }`. Si falta, l
 ## Vista y conectores en v0.4.1
 
 El zoom se guarda entre 0,05 y 5 (5–500%). Las vistas de versiones anteriores entre 5 y 8 se abren normalizadas a 5 conservando sus objetos. Una línea puede tener ancho o alto cero para conservar horizontales y verticales exactas; las demás figuras mantienen dimensiones mínimas de una unidad. Los extremos referenciados se ajustan al contorno al abrir o editar el proyecto. Los colores de las barras son preferencias del navegador y no forman parte del documento.
+
+## Conexiones en v0.5.0
+
+El esquema de documento sigue en versión 2, con campos opcionales para líneas al leer versiones anteriores. `fromAnchor` y `toAnchor` guardan un lado (`top`, `right`, `bottom`, `left`) o `null`; `routing` admite `orthogonal` o `straight`; `followsObjects` indica si sus extremos siguen a las figuras. `routePoints` guarda hasta 24 puntos normalizados entre 0 y 1 respecto al cuadro de la línea. Una lista de un solo punto se rechaza. `bend` es un punto finito en unidades del lienzo, o `null` para recorrido automático.
+
+Las conexiones antiguas se abren con anclajes fijados una vez y recorrido ortogonal. Copiar, duplicar y transformar también desplaza el codo manual y remapea los IDs. Para conservar codos y modo fijo al editar, usar Bridge v0.5.0 o posterior; versiones anteriores no representan estos campos nuevos. El formato Microsoft conserva su alcance anterior; WBRIDGE y el formato propio de Bridge conservan las conexiones completas.

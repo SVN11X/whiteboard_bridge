@@ -1,8 +1,8 @@
 import type { BoardObject } from '../models/document';
 import { shapePolygon } from './shapes';
-import { boundsOf, lineEndpoints } from '../editor/geometry';
+import { boundsOf, lineWorldPoints } from '../editor/geometry';
 const ARROW_ANGLE = .45;
-const arrowLength = (o: BoardObject) => Math.min(Math.hypot(o.width, o.height) * .45, Math.max(12, o.strokeWidth * 4));
+const arrowLength = (o: BoardObject) => Math.min(Math.hypot(o.width, o.height) * .65, Math.max(12, o.strokeWidth * 4));
 const exportPadding = (objects: BoardObject[]) => Math.ceil(Math.max(24, ...objects.map(o => Math.max(o.strokeWidth * 2, o.type === 'line' && o.arrow !== 'none' ? arrowLength(o) * Math.sin(ARROW_ANGLE) + o.strokeWidth / 2 : 0))));
 export const esc = (s: unknown) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 export function wrapText(text: string, width: number, fontSize: number): string[] {
@@ -19,11 +19,17 @@ export function wrapText(text: string, width: number, fontSize: number): string[
   }
   return lines;
 }
+export function textTop(o: Extract<BoardObject, { type: 'text' | 'sticky' | 'shape' }>): number {
+  if (o.type !== 'shape') return o.type === 'text' ? 2 : 18;
+  const count = Math.min(wrapText(o.text, o.width - 36, o.fontSize).length, Math.max(1, Math.floor((o.height - 18) / (o.fontSize * 1.25))));
+  return Math.max(18, (o.height - count * o.fontSize * 1.25) / 2);
+}
 function textMarkup(o: Extract<BoardObject, { type: 'text' | 'sticky' | 'shape' }>): string {
   const padding = o.type === 'text' ? 2 : 18, lines = wrapText(o.text, o.width - 2 * padding, o.fontSize);
   const visible = lines.slice(0, Math.max(1, Math.floor((o.height - padding) / (o.fontSize * 1.25))));
   const x = o.align === 'left' ? padding : o.align === 'center' ? o.width / 2 : o.width - padding;
-  return `<text fill="${o.textColor}" font-family="system-ui, Segoe UI, sans-serif" font-size="${o.fontSize}" font-weight="${o.type === 'text' && o.fontSize >= 30 ? 650 : 450}" text-anchor="${o.align === 'left' ? 'start' : o.align === 'right' ? 'end' : 'middle'}">${visible.map((line, i) => `<tspan x="${x}" y="${padding + o.fontSize + i * o.fontSize * 1.25}">${esc(line)}</tspan>`).join('')}</text>`;
+  const top = textTop(o);
+  return `<text fill="${o.textColor}" font-family="system-ui, Segoe UI, sans-serif" font-size="${o.fontSize}" font-weight="${o.type === 'text' && o.fontSize >= 30 ? 650 : 450}" text-anchor="${o.align === 'left' ? 'start' : o.align === 'right' ? 'end' : 'middle'}">${visible.map((line, i) => `<tspan x="${x}" y="${top + o.fontSize + i * o.fontSize * 1.25}">${esc(line)}</tspan>`).join('')}</text>`;
 }
 export function primitiveMarkup(o: BoardObject, showText = true): string {
   const w = o.width, h = o.height;
@@ -44,13 +50,13 @@ export function primitiveMarkup(o: BoardObject, showText = true): string {
     return `<g fill="none" stroke="${o.stroke}" stroke-linecap="round" stroke-linejoin="round">${segments.join('')}</g>`;
   }
   if (o.type === 'line') {
-    const { start: a, end: b } = lineEndpoints({ ...o, x: 0, y: 0, rotation: 0 });
-    const length = Math.hypot(b.x - a.x, b.y - a.y);
+    const points = lineWorldPoints({ ...o, x: 0, y: 0, rotation: 0 }), a = points[0], b = points.at(-1)!;
+    const length = points.slice(1).reduce((sum, p, i) => sum + Math.hypot(p.x - points[i].x, p.y - points[i].y), 0);
     const head = (tip: typeof a, other: typeof a, end: string) => {
-      const angle = Math.atan2(tip.y - other.y, tip.x - other.x), len = arrowLength(o);
+      const angle = Math.atan2(tip.y - other.y, tip.x - other.x), len = Math.min(arrowLength(o), Math.hypot(tip.x - other.x, tip.y - other.y) * .65);
       return `<path data-arrowhead="${end}" fill="${o.stroke}" d="M${tip.x - len * Math.cos(angle - ARROW_ANGLE)} ${tip.y - len * Math.sin(angle - ARROW_ANGLE)} L${tip.x} ${tip.y} L${tip.x - len * Math.cos(angle + ARROW_ANGLE)} ${tip.y - len * Math.sin(angle + ARROW_ANGLE)} Z"/>`;
     };
-    return `<g fill="none" stroke="${o.stroke}" stroke-width="${o.strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path data-line-path="true" d="M${a.x} ${a.y} L${b.x} ${b.y}"/>${length && o.arrow !== 'none' ? head(b, a, 'end') : ''}${length && o.arrow === 'both' ? head(a, b, 'start') : ''}</g>`;
+    return `<g fill="none" stroke="${o.stroke}" stroke-width="${o.strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path data-line-path="true" d="${points.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' ')}"/>${length && o.arrow !== 'none' ? head(b, points.at(-2)!, 'end') : ''}${length && o.arrow === 'both' ? head(a, points[1], 'start') : ''}</g>`;
   }
   if (o.type === 'text') return showText ? textMarkup(o) : '';
   const text = showText ? textMarkup(o) : '';

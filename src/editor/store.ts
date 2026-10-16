@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createBoard, uid, MAX_OBJECTS, clampZoom, type Board, type BoardObject, type Viewport } from '../models/document';
-import { boundsOf, center, descendants, isLocked, reconcile, rotatePoint } from './geometry';
+import { boundsOf, center, descendants, isLocked, reconcile, resolveConnector, rotatePoint } from './geometry';
 
 type State = {
   board: Board; selected: string[]; past: Board[]; future: Board[]; revision: number; busy: boolean;
@@ -31,7 +31,7 @@ export function cloneObjects(objects: BoardObject[], dx = 32, dy = 32): BoardObj
   return objects.map(o => ({ ...structuredClone(o), id: ids.get(o.id)!, x: o.x + dx, y: o.y + dy,
     groupId: o.groupId ? ids.get(o.groupId) ?? null : null,
     ...(o.type === 'group' ? { children: o.children.filter(c => ids.has(c)).map(c => ids.get(c)!) } : {}),
-    ...(o.type === 'line' ? { fromId: o.fromId ? ids.get(o.fromId) ?? null : null, toId: o.toId ? ids.get(o.toId) ?? null : null } : {}),
+    ...(o.type === 'line' ? { bend: o.bend ? { x: o.bend.x + dx, y: o.bend.y + dy } : null, fromId: o.fromId ? ids.get(o.fromId) ?? null : null, toId: o.toId ? ids.get(o.toId) ?? null : null } : {}),
   } as BoardObject));
 }
 export const useEditor = create<State>((set, get) => ({
@@ -44,7 +44,7 @@ export const useEditor = create<State>((set, get) => ({
   add: objects => {
     const s = get(); if (s.board.objects.length + objects.length > MAX_OBJECTS) throw new Error('Límite de 20.000 objetos.');
     let points = 0, images = 0;
-    for (const o of [...s.board.objects, ...objects]) { if (o.type === 'ink') points += o.points.length; if (o.type === 'image') images += o.dataUrl.length; }
+    for (const o of [...s.board.objects, ...objects]) { if (o.type === 'ink') points += o.points.length; if (o.type === 'line') points += o.routePoints.length; if (o.type === 'image') images += o.dataUrl.length; }
     if (points > 500_000 || images > 24_000_000) throw new Error('Límite del documento: 500.000 puntos o 24 MB de imágenes. Exporta y crea otra pizarra.');
     const z = Math.max(0, ...s.board.objects.map(o => o.zIndex)) + 1;
     get().commit([...s.board.objects, ...objects.map((o, i) => ({ ...o, zIndex: z + i }))]);
@@ -52,7 +52,12 @@ export const useEditor = create<State>((set, get) => ({
   },
   patch: changes => {
     const s = get(), ids = descendants(s.board.objects, s.selected);
-    get().commit(s.board.objects.map(o => ids.has(o.id) && (!isLocked(o, s.board.objects) || 'locked' in changes) ? { ...o, ...changes } as BoardObject : o));
+    get().commit(s.board.objects.map(o => {
+      if (!ids.has(o.id) || isLocked(o, s.board.objects) && !('locked' in changes)) return o;
+      const next = { ...o, ...changes } as BoardObject;
+      return next.type === 'line' && (changes.followsObjects === true || ['routing', 'bend', 'fromAnchor', 'toAnchor'].some(key => key in changes))
+        ? resolveConnector(next, s.board.objects.find(o => o.id === next.fromId), s.board.objects.find(o => o.id === next.toId), true) : next;
+    }));
   },
   remove: () => {
     const s = get(), ids = descendants(s.board.objects, s.selected.filter(id => { const o = s.board.objects.find(o => o.id === id); return o && !isLocked(o, s.board.objects); }));
@@ -98,7 +103,7 @@ export const useEditor = create<State>((set, get) => ({
       for (const id of descendants(s.board.objects, [o.id])) shifts.set(id, { dx, dy });
       cursor += (horizontal ? o.width : o.height) + gap;
     }
-    get().commit(s.board.objects.map(o => { const d = shifts.get(o.id); return d ? { ...o, x: o.x + d.dx, y: o.y + d.dy } : o; }));
+    get().commit(s.board.objects.map(o => { const d = shifts.get(o.id); return d ? { ...o, x: o.x + d.dx, y: o.y + d.dy, ...(o.type === 'line' && o.bend ? { bend: { x: o.bend.x + d.dx, y: o.bend.y + d.dy } } : {}) } : o; }));
   },
   layer: mode => { const s = get(), ids = descendants(s.board.objects, s.selected), z = mode === 'front' ? Math.max(0, ...s.board.objects.map(o => o.zIndex)) + 1 : Math.min(0, ...s.board.objects.map(o => o.zIndex)) - ids.size - 1; let i = 0; get().commit(s.board.objects.map(o => ids.has(o.id) && !isLocked(o, s.board.objects) ? { ...o, zIndex: z + i++ } : o)); },
   transform: (before, dx, dy, sx = 1, sy = 1, degrees = 0) => {
@@ -107,7 +112,8 @@ export const useEditor = create<State>((set, get) => ({
     get().preview(before.objects.map(o => {
       if (!ids.has(o.id) || o.type === 'group' || isLocked(o, before.objects)) return o;
       const c = rotatePoint(center(o), pivot, degrees);
-      return { ...o, x: degrees ? c.x - o.width / 2 : bounds.x + (o.x - bounds.x) * sx + dx, y: degrees ? c.y - o.height / 2 : bounds.y + (o.y - bounds.y) * sy + dy, width: Math.max(1, Math.min(100_000, o.width * sx)), height: Math.max(1, Math.min(100_000, o.height * sy)), rotation: ((o.rotation + degrees) % 360 + 360) % 360 };
+      const bend = o.type === 'line' && o.bend ? degrees ? rotatePoint(o.bend, pivot, degrees) : { x: bounds.x + (o.bend.x - bounds.x) * sx + dx, y: bounds.y + (o.bend.y - bounds.y) * sy + dy } : null;
+      return { ...o, ...(o.type === 'line' ? { bend } : {}), x: degrees ? c.x - o.width / 2 : bounds.x + (o.x - bounds.x) * sx + dx, y: degrees ? c.y - o.height / 2 : bounds.y + (o.y - bounds.y) * sy + dy, width: Math.max(1, Math.min(100_000, o.width * sx)), height: Math.max(1, Math.min(100_000, o.height * sy)), rotation: ((o.rotation + degrees) % 360 + 360) % 360 };
     }));
   },
 }));
