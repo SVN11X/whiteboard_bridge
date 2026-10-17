@@ -32,7 +32,8 @@ Pulsar **Importar** en la barra superior, usar Ctrl+O o arrastrar un archivo al 
 | --- | --- |
 | `.wbridge` | Se valida y abre una nueva pizarra editable |
 | `.json` de Bridge v2 | El mismo documento editable que en versiones anteriores |
-| `.json` del laboratorio v1 | Migración automática a v2 y apertura como nueva pizarra |
+| `.json` del laboratorio v1 | Migración automática a v2 y apertura como nueva pizarra. Desde 0.6.0 conserva el texto de rectángulos y elipses. Sus flechas se convierten en líneas, que no pasan a Microsoft Whiteboard |
+| `.json` de un agente de IA | Igual que un JSON de Bridge v2. Ver [AGENTE_IA.md](AGENTE_IA.md) |
 | PNG / JPEG / WebP / GIF | Se añade una imagen a la pizarra actual; GIF se normaliza a un fotograma |
 | JSON de respaldo de varias pizarras | Se indica el flujo de restauración desde Tus pizarras |
 | `.whiteboard`, SVG, PDF, otros JSON o formatos | Se rechazan con un mensaje; la pizarra actual se conserva |
@@ -70,3 +71,9 @@ El zoom se guarda entre 0,05 y 5 (5–500%). Las vistas de versiones anteriores 
 El esquema de documento sigue en versión 2, con campos opcionales para líneas al leer versiones anteriores. `fromAnchor` y `toAnchor` guardan un lado (`top`, `right`, `bottom`, `left`) o `null`; `routing` admite `orthogonal` o `straight`; `followsObjects` indica si sus extremos siguen a las figuras. `routePoints` guarda hasta 24 puntos normalizados entre 0 y 1 respecto al cuadro de la línea. Una lista de un solo punto se rechaza. `bend` es un punto finito en unidades del lienzo, o `null` para recorrido automático.
 
 Las conexiones antiguas se abren con anclajes fijados una vez y recorrido ortogonal. Copiar, duplicar y transformar también desplaza el codo manual y remapea los IDs. Para conservar codos y modo fijo al editar, usar Bridge v0.5.0 o posterior; versiones anteriores no representan estos campos nuevos. El formato Microsoft conserva su alcance anterior; WBRIDGE y el formato propio de Bridge conservan las conexiones completas.
+
+## Agente de IA y errores con ubicación en v0.6.0
+
+El esquema sigue en versión 2. `public/agente/` publica las instrucciones, el conocimiento, la configuración y un ejemplo para que un agente de Microsoft 365 Copilot genere pizarras compatibles con la copia a Microsoft Whiteboard: solo notas, textos y las siete figuras admitidas, sin grupos. Ver [AGENTE_IA.md](AGENTE_IA.md).
+
+El mensaje de un archivo inválido indica la ubicación del primer error: `Proyecto no válido: objeto 4 (id o4), campo label: …`. El número del objeto cuenta desde 1. Los errores del documento raíz indican el campo, por ejemplo `campo createdAt` o `campo viewport.zoom`.

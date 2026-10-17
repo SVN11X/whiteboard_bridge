@@ -1,5 +1,29 @@
 # Cambios
 
+## 0.6.0 · 2026-10-17
+
+- Agente de IA para Microsoft 365 Copilot publicado en el sitio: instrucciones dentro del límite de 8.000 caracteres, conocimiento en .txt, configuración con iniciadores de conversación y un ejemplo válido. Se abre en Configuración → Crear con un agente de IA y en Más herramientas → Crear con IA.
+- El agente pregunta lo que falta, planifica las secciones, genera y valida el JSON, y corrige los errores que informe Bridge. Usa solo objetos que se copian completos a Microsoft Whiteboard.
+- Los archivos del agente se pueden copiar o descargar, funcionan sin conexión y el ejemplo se abre en Bridge con un clic.
+- Los errores de importación indican el objeto y el campo, por ejemplo «objeto 4 (id o4), campo label».
+- La migración de JSON v1 conserva el texto de rectángulos y elipses.
+- Se corrige la documentación del modo Microsoft: la séptima figura es la píldora (`capsule`), no un rectángulo redondeado.
+- Pruebas nuevas mantienen sincronizados los archivos del agente con el esquema, las figuras, los colores de notas y los mensajes de error.
+
+## 0.5.0 · 2026-10-16
+
+- Conexiones con lados fijos y codos de 90°, ajustables desde el lienzo o Propiedades, y opción Fijar conexión en el lienzo.
+- Doce plantillas editables con búsqueda, categorías y miniaturas de su contenido.
+- Paleta de figuras y barra de selección claras incluso con tema oscuro.
+- El esquema 2 suma campos opcionales de líneas: anclajes, recorrido, puntos y codo.
+
+## 0.4.1 · 2026-10-16
+
+- Cabecera y barras inferiores compactas de 40 px en escritorio.
+- Zoom de 5 a 500 % y vistas anteriores normalizadas al abrirlas.
+- Líneas con ancho o alto cero para horizontales y verticales exactas.
+- Modo Microsoft Whiteboard · editable sin aviso experimental, tras la confirmación del usuario.
+
 ## 0.4.0 · 2026-10-16
 
 - Entorno de trabajo adaptado a las capturas: lienzo completo, cabecera compacta, herramientas flotantes, paletas y zoom a la derecha.

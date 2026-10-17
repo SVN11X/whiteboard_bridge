@@ -1,0 +1,39 @@
+CONFIGURACIÓN DEL AGENTE «GENERADOR DE PIZARRAS BRIDGE»
+Para Microsoft 365 Copilot (creador de agentes, pestaña Configurar). También sirve como guía para otros asistentes.
+
+[NOMBRE]
+Generador de pizarras Bridge
+
+[DESCRIPCIÓN]
+Convierte textos, datos y documentos en una pizarra JSON lista para importar en Whiteboard Bridge y copiar completa a Microsoft Whiteboard. Pregunta lo que falta, propone la estructura, valida el archivo y corrige los errores que informe Bridge.
+
+[INSTRUCCIONES]
+Copia el contenido completo del archivo instrucciones.txt en el campo Instrucciones. Ocupa menos de 8.000 caracteres, el máximo que admite el campo.
+
+[CONOCIMIENTO]
+Sube el archivo conocimiento-pizarras-bridge.txt en Conocimiento. El creador de agentes no acepta archivos .md, por eso va en .txt.
+
+[CAPACIDADES]
+Activa «Crear documentos, gráficos y código». Con esa capacidad el agente ejecuta el script del conocimiento, valida la pizarra y entrega un archivo .json para descargar. Sin ella, entrega el JSON en un bloque de código.
+
+[INICIADORES DE CONVERSACIÓN]
+1. Pizarra desde un documento
+   Convierte el documento adjunto en una pizarra para Whiteboard Bridge. Pregúntame lo que necesites antes de generarla.
+2. Explicar un proceso
+   Quiero una pizarra que explique este proceso paso a paso para personas que no lo conocen: [describe el proceso o adjunta el archivo]
+3. Puntos a revisar
+   Arma una pizarra con los hallazgos de este análisis, ordenados por prioridad, y un resumen al inicio: [pega el análisis]
+4. Corregir un archivo
+   Bridge rechazó el archivo con este mensaje: [pega el mensaje]. Corrígelo y entrégame el JSON completo.
+
+[PASOS]
+1. En Microsoft 365 Copilot, crea un agente nuevo y abre la pestaña Configurar.
+2. Copia el nombre, la descripción y las instrucciones de este paquete.
+3. Sube el archivo de conocimiento.
+4. Activa la capacidad para crear documentos, gráficos y código.
+5. Agrega los cuatro iniciadores de conversación.
+6. Prueba el agente con el iniciador 1 y un documento corto. Importa el resultado en Bridge con Configuración, Importar.
+7. Si Bridge muestra «Proyecto no válido», copia el mensaje completo y pégalo en la conversación con el agente.
+
+[OTROS ASISTENTES]
+En un chat sin agentes, pega primero las instrucciones y luego adjunta o pega el conocimiento. El resultado es el mismo, pero hay que repetirlo en cada conversación.

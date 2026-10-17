@@ -94,8 +94,21 @@ export function parseBoard(value: unknown): Board {
     value = { ...value, viewport: { ...value.viewport, zoom: MAX_ZOOM } };
   }
   const result = boardSchema.safeParse(value);
-  if (!result.success) throw new Error(`Proyecto no válido: ${result.error.issues[0]?.message}`);
+  if (!result.success) throw new Error(`Proyecto no válido: ${describeIssue(result.error.issues[0], value)}`);
   return result.data;
+}
+/** Locates the first validation error so a person, or the agent that generated the file, can fix only that part. */
+function describeIssue(issue: z.core.$ZodIssue | undefined, value: unknown): string {
+  if (!issue) return 'estructura desconocida.';
+  const path = issue.path.map(String);
+  let place = '';
+  if (path[0] === 'objects' && /^\d+$/.test(path[1] ?? '')) {
+    const index = Number(path[1]);
+    const objects = value && typeof value === 'object' && 'objects' in value && Array.isArray(value.objects) ? value.objects : [];
+    const id = objects[index] && typeof objects[index] === 'object' && typeof objects[index].id === 'string' ? ` (id ${objects[index].id.slice(0, 100)})` : '';
+    place = `objeto ${index + 1}${id}${path.length > 2 ? `, campo ${path.slice(2).join('.')}` : ''}`;
+  } else if (path.length) place = `campo ${path.join('.')}`;
+  return place ? `${place}: ${issue.message}` : issue.message;
 }
 export function deserializeBoard(raw: string): Board {
   if (new TextEncoder().encode(raw).byteLength > MAX_FILE_BYTES) throw new Error('El proyecto supera 32 MiB.');
@@ -107,7 +120,7 @@ function migrateV1(raw: unknown): Board {
   const board = createBoard('Importado de Bridge Lab v0.1.0');
   board.objects = old.objects.map((o, i) => {
     const type = o.type === 'note' ? 'sticky' : o.type === 'rect' || o.type === 'ellipse' ? 'shape' : o.type === 'arrow' ? 'line' : 'text';
-    return makeObject(type, o, { width: o.w, height: o.h, fill: o.color, stroke: o.color, zIndex: i, ...(type === 'shape' ? { shape: o.type as 'rect' | 'ellipse' } : {}), ...(['text', 'sticky'].includes(type) ? { text: o.text, textColor: type === 'text' ? o.color : '#203a35' } : {}) });
+    return makeObject(type, o, { width: o.w, height: o.h, fill: o.color, stroke: o.color, zIndex: i, ...(type === 'shape' ? { shape: o.type as 'rect' | 'ellipse' } : {}), ...(type !== 'line' ? { text: o.text, textColor: type === 'text' ? o.color : '#203a35' } : {}) });
   });
   return parseBoard(board);
 }

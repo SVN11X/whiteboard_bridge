@@ -1,0 +1,471 @@
+CONOCIMIENTO DEL GENERADOR DE PIZARRAS BRIDGE
+Versión para Whiteboard Bridge 0.6.0. Formato de documento: whiteboard-bridge versión 2.
+
+Este archivo es la referencia completa del agente. Las instrucciones del agente indican cuándo usar cada parte.
+
+1. QUÉ SE CONSTRUYE Y POR QUÉ TIENE LÍMITES
+
+Whiteboard Bridge es una pizarra web. El usuario importa en Bridge el JSON que genera el agente, selecciona todos los objetos y los copia con el formato «Microsoft Whiteboard · editable» para pegarlos en Microsoft Whiteboard.
+
+Esa copia solo admite tres tipos de objeto: notas, textos y siete figuras básicas. Si la selección incluye otro tipo (línea, conector, dibujo a mano, imagen o la figura de flecha), Microsoft rechaza la copia completa. Los grupos se separan al copiar. Por eso la pizarra se arma solo con notas, textos y esas figuras, y las flechas se dibujan con triángulos.
+
+2. DOCUMENTO RAÍZ
+
+Campo        Valor
+schema       Siempre "whiteboard-bridge".
+version      Siempre el número 2.
+id           Texto de 1 a 100 caracteres. Por ejemplo, el nombre del archivo sin extensión.
+name         Título visible de la pizarra, de 1 a 120 caracteres.
+createdAt    Fecha y hora ISO con Z, por ejemplo "2026-10-17T00:00:00.000Z". Una fecha sin hora es rechazada.
+updatedAt    Igual que createdAt.
+viewport     {"x": 40, "y": 40, "zoom": 0.3}. El zoom va de 0,05 a 5.
+background   {"color": "#ffffff", "grid": "dot"}. Otras cuadrículas: solid, square, graph, hybrid, diamond, wide-rule, triangle, narrow-rule.
+objects      Lista de objetos en orden de capa. El primero queda al fondo.
+
+Límites del archivo: 32 MiB y 20.000 objetos. Para que el pegado en Microsoft sea fluido, usar como máximo 400 objetos por pizarra.
+
+3. CAMPOS DE CADA OBJETO
+
+Cada objeto lleva los 19 campos siguientes. Las figuras además llevan shape. Si falta uno, Bridge rechaza el archivo completo. No agregues campos que no estén en esta lista.
+
+Campo        Regla
+id           Texto único en el documento, de 1 a 100 caracteres. Usar o1, o2, o3 en orden.
+type         "shape" (figura), "sticky" (nota) o "text" (texto).
+shape        Solo en figuras. Ver la sección 4.
+x, y         Esquina superior izquierda en píxeles. y crece hacia abajo.
+width        Ancho, de 1 a 100.000.
+height       Alto, de 1 a 100.000.
+rotation     Grados. 0, salvo en los triángulos que hacen de flecha.
+zIndex       Entero igual a la posición del objeto en la lista, partiendo en 0.
+opacity      Siempre 1.
+locked       Siempre false.
+groupId      Siempre null.
+fill         Relleno #rrggbb.
+stroke       Borde #rrggbb.
+strokeWidth  De 0 a 100. 2 en figuras, 1 en flechas, 0 en notas y textos.
+label        Descripción corta de hasta 200 caracteres. Usar la primera línea del texto.
+text         Contenido visible, hasta 20.000 caracteres. Puede ser "".
+fontSize     De 8 a 300. Mínimo recomendado 14.
+textColor    Color del texto #rrggbb.
+align        "left", "center" o "right".
+
+4. TIPOS PERMITIDOS Y PROHIBIDOS
+
+Permitidos:
+text      Texto suelto sin fondo. Su fill y su stroke no se ven. Si necesitas fondo, pon una figura detrás.
+sticky    Nota adhesiva con fondo de color y texto arriba. Debe ser cuadrada.
+shape     Figura con texto centrado en vertical. shape puede ser:
+          rect (rectángulo), ellipse (elipse o círculo), triangle (triángulo), diamond (rombo),
+          pentagon (pentágono), parallelogram (paralelogramo), capsule (píldora).
+
+Prohibidos: line (línea o conector), ink (dibujo a mano), image (imagen), group (grupo) y la figura arrow-shape. Bridge acepta algunos, pero Microsoft rechaza la copia completa si aparece uno.
+
+5. MEDIDA DEL TEXTO
+
+Bridge corta el texto así. Aplica estas reglas para que ningún texto quede oculto.
+
+1. Relleno interno: 2 en textos, 18 en notas y figuras.
+2. Caracteres por línea: (0,9 por el ancho, menos dos veces el relleno) dividido por (fontSize por 0,56), redondeado hacia abajo. El 0,9 deja margen para la letra de Microsoft.
+3. El texto se corta por palabras. Una palabra más larga que la línea se parte en trozos. Cada \n empieza una línea nueva y una línea vacía también cuenta.
+4. Alto de cada línea: fontSize por 1,25.
+5. Alto mínimo:
+   texto   líneas por fontSize por 1,25, más 8
+   figura  líneas por fontSize por 1,25, más 40
+   nota    líneas por fontSize por 1,25, más 18, y la nota es cuadrada
+6. Si no cabe, agranda el objeto. Si queda demasiado grande, divide el contenido en dos objetos. No bajes la letra de 14.
+
+Ejemplo: una figura de 400 de ancho con fontSize 16 admite 36 caracteres por línea. Con 5 líneas, su alto mínimo es 5 por 20, más 40, es decir 140.
+
+Referencia rápida de caracteres por línea:
+ancho 300 con fontSize 16: 26      ancho 400 con fontSize 16: 36      ancho 470 con fontSize 16: 43
+ancho 400 con fontSize 15: 38      ancho 820 con fontSize 15: 83      ancho 330 nota con fontSize 14: 33
+
+6. COMPATIBILIDAD CON MICROSOFT WHITEBOARD
+
+1. Solo los tipos permitidos de la sección 4.
+2. groupId siempre null.
+3. Notas: fill en uno de estos 12 colores. Otro color se cambia por el más parecido.
+   #ffe6a1 amarillo      #fccd7a naranjo     #fbc19e durazno     #f18992 rojo
+   #ed99c9 rosado        #cbe799 verde claro #9be0ba verde       #99d9ef celeste
+   #9fb0fa azul          #c9a3dd morado      #ebebeb gris claro  #b6b6b6 gris
+4. Flechas: triangle de 34 por 29, sin texto, fill y stroke #5c6677, strokeWidth 1. rotation 90 apunta a la derecha, 180 hacia abajo, 270 a la izquierda y 0 hacia arriba. Va centrado en el espacio entre los dos objetos que une.
+5. Línea larga: rectángulo de 4 de alto (horizontal) o de 4 de ancho (vertical), relleno y borde #5c6677, terminado en un triángulo.
+6. El orden de la lista es el orden de capas en Microsoft. Los recuadros de sección van al principio. zIndex coincide con la posición.
+7. Microsoft usa la letra Segoe UI. No uses emojis ni símbolos poco comunes.
+
+7. SISTEMA VISUAL
+
+7.1 Grilla
+Ancho total recomendado: 4.400. Separación entre secciones vecinas: 120.
+Las secciones se ordenan en filas y se leen de izquierda a derecha y de arriba hacia abajo. Se numeran en ese orden.
+Las secciones de una fila tienen la misma altura. Si una queda corta, apila otra debajo en la misma columna o alarga la última.
+Dentro de una sección: margen de 40 a cada lado y el contenido empieza 150 más abajo del borde superior.
+Separación entre tarjetas: 14 a 26. Entre bloques: 30 a 40.
+
+7.2 Recuadro de sección (tres objetos)
+Recuadro   shape rect, fill #f6f7f9, stroke #c3c9d4, strokeWidth 2, sin texto. Al principio de la lista.
+Número     shape ellipse de 74 por 74 en (x + 40, y + 36), fill y stroke #14213d, texto #ffffff, fontSize 26, align center.
+Título     text en (x + 136, y + 44), ancho igual al de la sección menos 180, fontSize 34.
+
+7.3 Portada (siempre la sección 1)
+Título de la pizarra (46), subtítulo (24), fuente de la información (17), qué explica la pizarra, cómo leerla, leyenda de colores (cuadros de 70 por 44 con su texto al lado) e índice de secciones.
+
+7.4 Tamaños de letra
+Título de la pizarra 46. Título de sección 34. Subtítulo 24 a 28. Introducción 18. Tarjetas 15 a 17. Notas 14 a 16. Mínimo 14.
+Texto principal #242424. Texto secundario #4a5160.
+
+7.5 Colores por papel (relleno y borde)
+origen      #ebebeb y #5c6677    datos de entrada, fuentes, documentos
+proceso     #99d9ef y #2459c4    pasos, cálculos, áreas que transforman
+elemento    #cbe799 y #157a45    unidades de detalle, ítems, campos
+resultado   #c9a3dd y #6a33d1    totales, conclusiones, salidas
+control     #fccd7a y #b45309    revisiones, comparaciones, validaciones
+alerta      #fbc19e y #b42318    diferencias o problemas
+neutro      #ffffff y #c3c9d4    explicaciones y listas
+Notas por prioridad: #f18992 alta, #ffe6a1 media, #b6b6b6 baja.
+Usa el mismo color para el mismo papel en toda la pizarra y explícalo en la leyenda.
+
+7.6 Patrones
+Flujo en carriles   Columna izquierda de 400 con tarjetas de origen apiladas. Triángulo a la derecha. Tarjetas de detalle en 2 o 3 columnas de 400. Debajo, triángulo hacia abajo y tarjeta de resultado.
+Pasos en secuencia  Tarjetas iguales en una fila, con una píldora «Paso 1» encima de cada una y un triángulo entre ellas.
+Decisión            Rombo con la pregunta, triángulos hacia las salidas y textos cortos «Sí» y «No» junto a cada salida.
+Puntos a revisar    Notas cuadradas de 300 a 340 en filas por prioridad, con una píldora de título por fila.
+Comparación         Dos o tres columnas con una píldora de título y tarjetas alineadas por fila con el mismo criterio.
+Línea de tiempo     Tarjetas en fila con la fecha en la primera línea y un triángulo entre cada una.
+Lista larga         Una figura neutra con el título en la primera línea y un ítem por línea numerado.
+Glosario            Tarjetas neutras en 3 o 4 columnas, con el término en la primera línea.
+
+7.7 Estimación de objetos
+Sección: 3 objetos más su contenido. Tarjeta: 1. Carril: tarjetas de origen, 1 flecha y tarjetas de detalle. Pasos: 2 por paso más las flechas. Decisión: 1 rombo, 2 salidas, 2 flechas y 2 textos. Leyenda: 2 por color.
+
+8. CONTENIDO Y REDACCIÓN
+
+1. Solo información del contexto. Sin cifras, nombres ni conclusiones inventadas. Si falta un dato: «Dato no disponible en la fuente».
+2. Cifras, códigos y nombres exactos. Formato numérico de Chile: $ 1.250.000 y 0,0001.
+3. Lenguaje simple. Cada término técnico se explica la primera vez o en el glosario.
+4. Sin punto y coma ni guiones como separadores. Sin símbolos matemáticos como la sumatoria.
+5. Una idea por tarjeta. Primera línea: nombre o código. Luego explicación, valor y origen.
+6. Cada flujo se lee siguiendo los triángulos.
+
+9. BANCO DE PREGUNTAS
+
+Hacer de 1 a 5 preguntas en un solo mensaje, solo de los temas que el contexto no responde. Cada pregunta lleva opciones y una respuesta sugerida.
+
+Objetivo      ¿Para qué se usará la pizarra? Explicar un proceso, apoyar una revisión, presentar resultados o documentar. Sugerida: explicar.
+Público       ¿Quién la leerá? Personas que no conocen el tema, equipo técnico o cliente. Sugerida: personas que no conocen el tema.
+Alcance       ¿Qué partes del contexto deben aparecer? Todo, solo lo principal o una lista de temas. Sugerida: lo principal más un detalle por sección.
+Estructura    ¿Hay un orden de secciones preferido? Sugerida: portada, resumen, detalle por etapa, puntos a revisar y glosario.
+Tamaño        ¿Qué tamaño? Pequeña hasta 80 objetos, mediana hasta 250, grande hasta 400. Sugerida: mediana.
+Datos         Hay datos que faltan o se contradicen (nombrarlos). ¿Cuál vale? Sugerida: usar la fuente más reciente y anotarlo como supuesto.
+Prioridades   ¿Cómo marcar lo importante? Notas por prioridad alta, media y baja. Sugerida: sí.
+Idioma        ¿Idioma y formato numérico? Sugerida: español de Chile.
+Archivo       ¿Nombre del archivo? Sugerida: tema en minúsculas, sin tildes, con guiones medios en lugar de espacios.
+
+10. LISTA DE VERIFICACIÓN
+
+1. El JSON es válido y estricto.
+2. El documento raíz tiene los 9 campos de la sección 2.
+3. Las fechas tienen hora y terminan en Z.
+4. Cada objeto tiene los 19 campos, y las figuras también shape. No hay campos extra.
+5. Solo hay tipos text, sticky y shape, y solo figuras permitidas.
+6. Los id son distintos. zIndex va de 0 al último sin saltos.
+7. groupId null, opacity 1 y locked false en todos.
+8. Colores #rrggbb. Notas cuadradas con colores de la paleta.
+9. Ningún texto supera el alto de su objeto.
+10. No hay superposiciones, salvo contenido dentro de su recuadro de sección.
+11. Los recuadros de sección están al principio de la lista.
+12. Las cifras coinciden con las fuentes.
+13. Hay como máximo 400 objetos.
+
+11. TABLA DE ERRORES
+
+Bridge revisa el archivo completo antes de abrirlo. Si algo falla, muestra «Proyecto no válido» con la ubicación y el motivo, y no cambia la pizarra abierta. Ejemplo:
+Proyecto no válido: objeto 4 (id o4), campo label: Invalid input: expected string, received undefined
+
+La ubicación indica el número del objeto en la lista (desde 1), su id y el campo. Corrige solo ese punto y entrega el JSON completo.
+
+Motivo en el mensaje                                Causa
+Invalid ISO datetime                                Fecha sin hora o sin Z en createdAt o updatedAt.
+Invalid input: expected string, received undefined  Falta un campo de texto, por ejemplo label o text.
+Invalid input: expected number, received string     Un número escrito entre comillas, por ejemplo "120".
+Invalid input: expected 2                           version distinta de 2.
+Invalid option                                      Valor no permitido en shape, align o grid, o una figura sin shape.
+Invalid discriminator value                         type distinto de text, sticky o shape.
+Invalid string: must match pattern                  Color que no tiene el formato #rrggbb.
+Too small o Too big                                 Número fuera de rango, por ejemplo fontSize menor que 8 o zoom mayor que 5.
+Hay identificadores duplicados                      Dos objetos con el mismo id.
+Grupo inválido                                      groupId distinto de null.
+
+Si Microsoft Whiteboard rechaza la copia diciendo que la selección incluye objetos aún no admitidos, hay una línea, flecha, imagen o dibujo. Reemplázalo por figuras.
+
+12. PLANTILLA DE RESPUESTA FINAL
+
+Después del archivo o del bloque JSON, como máximo 5 líneas:
+Archivo: nombre.json
+Objetos: cantidad
+Secciones: lista corta
+Supuestos: datos que faltaban o se eligieron
+Para usarlo: en Bridge, Configuración, Importar, y elegir el archivo.
+
+13. EJEMPLO MÍNIMO VÁLIDO
+
+Probado en Whiteboard Bridge. Una sección con número y título, un flujo de una tarjeta de origen a dos tarjetas de detalle, una flecha hacia abajo, un resultado y una nota. Úsalo como referencia de forma, no de contenido.
+
+```json
+{"schema": "whiteboard-bridge", "version": 2, "id": "ejemplo-pizarra", "name": "Ejemplo de flujo", "createdAt": "2026-10-17T17:37:41.000Z", "updatedAt": "2026-10-17T17:37:41.000Z", "viewport": {"x": 40, "y": 40, "zoom": 0.3}, "background": {"color": "#ffffff", "grid": "dot"},
+  "objects": [
+    {"id": "o1", "type": "shape", "x": 0, "y": 0, "width": 1460, "height": 775.0, "rotation": 0, "zIndex": 0, "opacity": 1, "locked": false, "groupId": null, "fill": "#f6f7f9", "stroke": "#c3c9d4", "strokeWidth": 2, "label": "Sección 1", "text": "", "fontSize": 18, "textColor": "#242424", "align": "left", "shape": "rect"},
+    {"id": "o2", "type": "shape", "x": 40, "y": 150, "width": 400, "height": 80.0, "rotation": 0, "zIndex": 1, "opacity": 1, "locked": false, "groupId": null, "fill": "#ebebeb", "stroke": "#5c6677", "strokeWidth": 2, "label": "Ventas del mes", "text": "Ventas del mes\nRegistro de ventas del SII.", "fontSize": 16, "textColor": "#242424", "align": "left", "shape": "rect"},
+    {"id": "o3", "type": "shape", "x": 510, "y": 150, "width": 400, "height": 80.0, "rotation": 0, "zIndex": 2, "opacity": 1, "locked": false, "groupId": null, "fill": "#cbe799", "stroke": "#157a45", "strokeWidth": 2, "label": "Facturas", "text": "Facturas\n$ 1.250.000", "fontSize": 16, "textColor": "#242424", "align": "left", "shape": "rect"},
+    {"id": "o4", "type": "shape", "x": 926, "y": 150, "width": 400, "height": 80.0, "rotation": 0, "zIndex": 3, "opacity": 1, "locked": false, "groupId": null, "fill": "#cbe799", "stroke": "#157a45", "strokeWidth": 2, "label": "Boletas", "text": "Boletas\n$ 830.000", "fontSize": 16, "textColor": "#242424", "align": "left", "shape": "rect"},
+    {"id": "o5", "type": "shape", "x": 458, "y": 175.0, "width": 34, "height": 28.9, "rotation": 90, "zIndex": 4, "opacity": 1, "locked": false, "groupId": null, "fill": "#5c6677", "stroke": "#5c6677", "strokeWidth": 1, "label": "Flecha", "text": "", "fontSize": 12, "textColor": "#242424", "align": "center", "shape": "triangle"},
+    {"id": "o6", "type": "shape", "x": 710, "y": 260.0, "width": 34, "height": 28.9, "rotation": 180, "zIndex": 5, "opacity": 1, "locked": false, "groupId": null, "fill": "#5c6677", "stroke": "#5c6677", "strokeWidth": 1, "label": "Flecha", "text": "", "fontSize": 12, "textColor": "#242424", "align": "center", "shape": "triangle"},
+    {"id": "o7", "type": "shape", "x": 510, "y": 320.0, "width": 816, "height": 85.0, "rotation": 0, "zIndex": 6, "opacity": 1, "locked": false, "groupId": null, "fill": "#c9a3dd", "stroke": "#6a33d1", "strokeWidth": 2, "label": "Total de ventas", "text": "Total de ventas\nSuma de facturas y boletas: $ 2.080.000.", "fontSize": 18, "textColor": "#242424", "align": "left", "shape": "rect"},
+    {"id": "o8", "type": "sticky", "x": 40, "y": 435.0, "width": 300, "height": 300, "rotation": 0, "zIndex": 7, "opacity": 1, "locked": false, "groupId": null, "fill": "#ffe6a1", "stroke": "#c3c9d4", "strokeWidth": 0, "label": "Punto a revisar", "text": "Punto a revisar\n\nConfirmar que el total coincide con el registro del SII.", "fontSize": 15, "textColor": "#242424", "align": "left"},
+    {"id": "o9", "type": "shape", "x": 40, "y": 36, "width": 74, "height": 74, "rotation": 0, "zIndex": 8, "opacity": 1, "locked": false, "groupId": null, "fill": "#14213d", "stroke": "#14213d", "strokeWidth": 2, "label": "1", "text": "1", "fontSize": 26, "textColor": "#ffffff", "align": "center", "shape": "ellipse"},
+    {"id": "o10", "type": "text", "x": 136, "y": 44, "width": 1280, "height": 50.5, "rotation": 0, "zIndex": 9, "opacity": 1, "locked": false, "groupId": null, "fill": "#ffffff", "stroke": "#c3c9d4", "strokeWidth": 0, "label": "Ejemplo de flujo", "text": "Ejemplo de flujo", "fontSize": 34, "textColor": "#242424", "align": "left"}
+  ]
+}
+```
+
+14. SCRIPT DE CONSTRUCCIÓN Y VALIDACIÓN (PYTHON)
+
+Si puedes ejecutar código, usa este script. Calcula el alto de cada objeto con las reglas de Bridge, deja los recuadros de sección al fondo y revisa campos, tipos, colores, notas, textos, superposiciones y el máximo de objetos. Reemplaza construir() por las secciones del caso. Si guardar() encuentra errores, corrígelos y vuelve a ejecutar antes de entregar.
+
+```python
+"""Construye y valida una pizarra JSON para Whiteboard Bridge.
+
+Uso: reemplaza el contenido de construir() por las secciones del caso y ejecuta el script.
+Las funciones calculan el alto de cada objeto con las mismas reglas de Bridge, ponen los
+recuadros de sección al fondo y revisan todo lo que haría fallar la importación o la copia
+a Microsoft Whiteboard.
+"""
+import json, math, re, datetime
+
+PALETA_NOTAS = ['#ffe6a1', '#fccd7a', '#fbc19e', '#f18992', '#ed99c9', '#cbe799',
+                '#9be0ba', '#99d9ef', '#9fb0fa', '#c9a3dd', '#ebebeb', '#b6b6b6']
+FORMAS = ['rect', 'ellipse', 'triangle', 'diamond', 'pentagon', 'parallelogram', 'capsule']
+PAPEL = {  # papel: (relleno, borde)
+    'origen': ('#ebebeb', '#5c6677'), 'proceso': ('#99d9ef', '#2459c4'), 'elemento': ('#cbe799', '#157a45'),
+    'resultado': ('#c9a3dd', '#6a33d1'), 'control': ('#fccd7a', '#b45309'), 'alerta': ('#fbc19e', '#b42318'),
+    'neutro': ('#ffffff', '#c3c9d4'), 'panel': ('#f6f7f9', '#c3c9d4'), 'oscuro': ('#14213d', '#14213d'),
+}
+NOTA_PRIORIDAD = {'alta': '#f18992', 'media': '#ffe6a1', 'baja': '#b6b6b6'}
+TINTA, TENUE, FLECHA = '#242424', '#4a5160', '#5c6677'
+CAMPOS = ['id', 'type', 'x', 'y', 'width', 'height', 'rotation', 'zIndex', 'opacity', 'locked', 'groupId', 'fill',
+          'stroke', 'strokeWidth', 'label', 'text', 'fontSize', 'textColor', 'align']
+fondos, objetos = [], []
+
+
+def lineas(texto, ancho, fs, relleno):
+    """Cuenta las líneas igual que Bridge, usando 90 % del ancho como margen para la letra de Microsoft."""
+    maximo = max(1, math.floor((ancho * 0.9 - 2 * relleno) / (fs * 0.56)))
+    total = 0
+    for parrafo in texto.split('\n'):
+        if not parrafo:
+            total += 1
+            continue
+        linea = ''
+        for palabra in parrafo.split():
+            if linea and len(linea) + len(palabra) + 1 > maximo:
+                total += 1
+                linea = ''
+            if len(palabra) > maximo:
+                if linea:
+                    total += 1
+                    linea = ''
+                trozos = [palabra[i:i + maximo] for i in range(0, len(palabra), maximo)]
+                total += len(trozos) - 1
+                linea = trozos[-1] if len(trozos[-1]) < maximo else ''
+                if not linea:
+                    total += 1
+            else:
+                linea = f'{linea} {palabra}' if linea else palabra
+        if linea:
+            total += 1
+    return total
+
+
+def alto_figura(texto, ancho, fs):
+    return lineas(texto, ancho, fs, 18) * fs * 1.25 + 40
+
+
+def _nuevo(lista, tipo, x, y, w, h, **extra):
+    o = dict(id='', type=tipo, x=round(x, 1), y=round(y, 1), width=round(w, 1), height=round(h, 1), rotation=0,
+             zIndex=0, opacity=1, locked=False, groupId=None, fill='#ffffff', stroke='#c3c9d4', strokeWidth=0,
+             label='', text='', fontSize=18, textColor=TINTA, align='left')
+    o.update(extra)
+    o['label'] = (o['label'] or o['text'].split('\n')[0])[:200]
+    lista.append(o)
+    return o
+
+
+def texto(x, y, w, contenido, fs=18, color=TINTA, align='left'):
+    """Texto suelto, sin fondo. Devuelve su alto."""
+    h = lineas(contenido, w, fs, 2) * fs * 1.25 + 8
+    _nuevo(objetos, 'text', x, y, w, h, text=contenido, fontSize=fs, textColor=color, align=align)
+    return h
+
+
+def figura(x, y, w, contenido, papel='neutro', fs=16, forma='rect', align='left', h=None, color=TINTA):
+    """Figura con texto centrado en vertical. Devuelve su alto."""
+    relleno, borde = PAPEL[papel]
+    h = h or alto_figura(contenido, w, fs)
+    _nuevo(objetos, 'shape', x, y, w, h, shape=forma, text=contenido, fontSize=fs, textColor=color, align=align,
+           fill=relleno, stroke=borde, strokeWidth=2)
+    return h
+
+
+def nota(x, y, lado, contenido, color, fs=15):
+    """Nota cuadrada. El color debe ser de la paleta de Microsoft."""
+    assert color in PALETA_NOTAS, f'Color de nota no permitido: {color}'
+    assert lineas(contenido, lado, fs, 18) * fs * 1.25 + 18 <= lado, f'El texto no cabe en la nota: {contenido[:50]}'
+    _nuevo(objetos, 'sticky', x, y, lado, lado, text=contenido, fontSize=fs, fill=color)
+    return lado
+
+
+def flecha(x, y, direccion='derecha', tam=34):
+    """Triángulo que reemplaza a las flechas y conectores, que no pasan a Microsoft."""
+    giro = {'derecha': 90, 'abajo': 180, 'izquierda': 270, 'arriba': 0}[direccion]
+    _nuevo(objetos, 'shape', x, y, tam, round(tam * 0.85, 1), shape='triangle', rotation=giro, fontSize=12,
+           align='center', fill=FLECHA, stroke=FLECHA, strokeWidth=1, label='Flecha')
+
+
+def panel(x, y, w, h, titulo, numero):
+    """Recuadro de sección con número y título. El recuadro queda siempre al fondo."""
+    _nuevo(fondos, 'shape', x, y, w, h, shape='rect', fill=PAPEL['panel'][0], stroke=PAPEL['panel'][1],
+           strokeWidth=2, label=f'Sección {numero}')
+    figura(x + 40, y + 36, 74, str(numero), papel='oscuro', fs=26, forma='ellipse', align='center', h=74, color='#ffffff')
+    texto(x + 136, y + 44, w - 180, titulo, fs=34)
+
+
+def grilla(x, y, ancho, textos, columnas=3, papel='neutro', fs=16, separacion=20):
+    """Tarjetas en filas de igual alto. Devuelve el alto usado."""
+    w = (ancho - separacion * (columnas - 1)) / columnas
+    alto = 0
+    for i in range(0, len(textos), columnas):
+        fila = textos[i:i + columnas]
+        h = max(alto_figura(t, w, fs) for t in fila)
+        for c, t in enumerate(fila):
+            figura(x + c * (w + separacion), y + alto, w, t, papel=papel, fs=fs, h=h)
+        alto += h + separacion
+    return alto - separacion if textos else 0
+
+
+def carril(x, y, origenes, tarjetas, columnas=3, ancho_origen=400, ancho_tarjeta=400, fs=16):
+    """Flujo de izquierda a derecha. origenes y tarjetas son listas de (papel, texto). Devuelve el alto usado."""
+    yo = y
+    for papel, contenido in origenes:
+        yo += figura(x, yo, ancho_origen, contenido, papel=papel, fs=fs) + 14
+    alto_origen = yo - y - 14
+    xt = x + ancho_origen + 70
+    alto_tarjetas = 0
+    for i in range(0, len(tarjetas), columnas):
+        fila = tarjetas[i:i + columnas]
+        h = max(alto_figura(t, ancho_tarjeta, fs) for _, t in fila)
+        for c, (papel, contenido) in enumerate(fila):
+            figura(xt + c * (ancho_tarjeta + 16), y + alto_tarjetas, ancho_tarjeta, contenido, papel=papel, fs=fs, h=h)
+        alto_tarjetas += h + 16
+    alto_tarjetas -= 16
+    flecha(x + ancho_origen + 18, y + min(alto_origen, alto_tarjetas) / 2 - 15)
+    return max(alto_origen, alto_tarjetas)
+
+
+def _caja(o):
+    return o['x'], o['y'], o['x'] + o['width'], o['y'] + o['height']
+
+
+def validar(doc):
+    errores = []
+    for k in ('schema', 'version', 'id', 'name', 'createdAt', 'updatedAt', 'viewport', 'background', 'objects'):
+        if k not in doc:
+            errores.append(f'Falta el campo raíz {k}')
+    if doc.get('schema') != 'whiteboard-bridge' or doc.get('version') != 2:
+        errores.append('schema o version incorrectos')
+    for k in ('createdAt', 'updatedAt'):
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z', str(doc.get(k))):
+            errores.append(f'{k} debe tener fecha, hora y Z')
+    if not 1 <= len(doc.get('name', '').strip()) <= 120 or not 1 <= len(doc.get('id', '')) <= 100:
+        errores.append('name o id con largo inválido')
+    if not 0.05 <= doc.get('viewport', {}).get('zoom', 0) <= 5:
+        errores.append('zoom fuera de 0,05 a 5')
+    todos = doc.get('objects', [])
+    if len(todos) > 400:
+        errores.append(f'{len(todos)} objetos, el máximo recomendado es 400')
+    ids = [o.get('id') for o in todos]
+    if len(set(ids)) != len(ids):
+        errores.append('Hay ids repetidos')
+    color = re.compile(r'#[0-9a-fA-F]{6}')
+    for i, o in enumerate(todos):
+        nombre = f'objeto {i + 1} ({o.get("id")})'
+        if o.get('type') not in ('text', 'sticky', 'shape'):
+            errores.append(f'{nombre}: tipo no permitido {o.get("type")}, usa text, sticky o shape')
+            continue
+        esperados = set(CAMPOS) | ({'shape'} if o['type'] == 'shape' else set())
+        if set(o) != esperados:
+            errores.append(f'{nombre}: faltan o sobran los campos {sorted(esperados ^ set(o))}')
+            continue
+        if o['type'] == 'shape' and o['shape'] not in FORMAS:
+            errores.append(f'{nombre}: figura no permitida {o["shape"]}')
+        if o['zIndex'] != i or o['groupId'] is not None or o['opacity'] != 1 or o['locked'] is not False:
+            errores.append(f'{nombre}: zIndex, groupId, opacity o locked incorrectos')
+        for k in ('fill', 'stroke', 'textColor'):
+            if not color.fullmatch(str(o[k])):
+                errores.append(f'{nombre}: {k} no es #rrggbb')
+        if not (1 <= o['width'] <= 100000 and 1 <= o['height'] <= 100000 and 8 <= o['fontSize'] <= 300 and 0 <= o['strokeWidth'] <= 100):
+            errores.append(f'{nombre}: medidas fuera de rango')
+        if len(o['text']) > 20000 or len(o['label']) > 200 or not 1 <= len(o['id']) <= 100:
+            errores.append(f'{nombre}: texto, label o id demasiado largos')
+        if o['type'] == 'sticky' and (o['fill'] not in PALETA_NOTAS or o['width'] != o['height']):
+            errores.append(f'{nombre}: la nota debe ser cuadrada y usar un color de la paleta')
+        if o['text']:
+            relleno, extra = (2, 8) if o['type'] == 'text' else (18, 18 if o['type'] == 'sticky' else 40)
+            if lineas(o['text'], o['width'], o['fontSize'], relleno) * o['fontSize'] * 1.25 + extra > o['height'] + 0.5:
+                errores.append(f'{nombre}: el texto no cabe, aumenta height')
+    # Solo se permite superponer un objeto dentro de un recuadro de fondo: un rect sin texto que va antes en la lista.
+    for a in range(len(todos)):
+        for b in range(a + 1, len(todos)):
+            pa, pb = todos[a], todos[b]
+            (x1, y1, x2, y2), (u1, v1, u2, v2) = _caja(pa), _caja(pb)
+            if not (x1 < u2 - 0.5 and u1 < x2 - 0.5 and y1 < v2 - 0.5 and v1 < y2 - 0.5):
+                continue
+            contiene = x1 <= u1 + 0.5 and y1 <= v1 + 0.5 and u2 <= x2 + 0.5 and v2 <= y2 + 0.5
+            if not (contiene and pa.get('shape') == 'rect' and not pa.get('text')):
+                errores.append(f'Los objetos {pa.get("id")} y {pb.get("id")} se superponen')
+    return errores
+
+
+def guardar(nombre, archivo):
+    todos = fondos + objetos  # los recuadros de sección quedan en la capa inferior
+    for i, o in enumerate(todos):
+        o['id'], o['zIndex'] = f'o{i + 1}', i
+    ahora = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    doc = dict(schema='whiteboard-bridge', version=2, id=archivo.rsplit('.', 1)[0][:100], name=nombre[:120],
+               createdAt=ahora, updatedAt=ahora, viewport=dict(x=40, y=40, zoom=0.3),
+               background=dict(color='#ffffff', grid='dot'), objects=todos)
+    errores = validar(doc)
+    if errores:
+        raise SystemExit('Corrige antes de entregar:\n' + '\n'.join(errores))
+    with open(archivo, 'w', encoding='utf-8') as f:
+        json.dump(doc, f, ensure_ascii=False, indent=2)
+    print(f'{archivo}: {len(todos)} objetos válidos')
+    return doc
+
+
+def construir():
+    """Ejemplo: una sección con un flujo y un punto a revisar. Reemplázalo por las secciones del caso."""
+    x, y, ancho = 0, 0, 1460
+    alto = 150
+    alto += carril(x + 40, y + alto, [('origen', 'Ventas del mes\nRegistro de ventas del SII.')],
+                   [('elemento', 'Facturas\n$ 1.250.000'), ('elemento', 'Boletas\n$ 830.000')], columnas=2) + 30
+    flecha(x + 40 + 400 + 70 + 200, y + alto, 'abajo')
+    alto += 60
+    alto += figura(x + 40 + 470, y + alto, 816, 'Total de ventas\nSuma de facturas y boletas: $ 2.080.000.', papel='resultado', fs=18) + 30
+    alto += nota(x + 40, y + alto, 300, 'Punto a revisar\n\nConfirmar que el total coincide con el registro del SII.', NOTA_PRIORIDAD['media']) + 40
+    panel(x, y, ancho, alto, 'Ejemplo de flujo', 1)
+
+
+if __name__ == '__main__':
+    construir()
+    guardar('Ejemplo de flujo', 'ejemplo-pizarra.json')
+```

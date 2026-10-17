@@ -1,4 +1,33 @@
-# Validación de v0.5.0
+# Validación
+
+## v0.6.0
+
+Fecha: 17-10-2026. Base `df59f64d2c4b1a479262d0f02091288863444d84`. Rama local `feat/agente-ia`. Ejecutor Linux con Node 22.22.2. No se añaden ni actualizan dependencias.
+
+| Comprobación | Resultado |
+| --- | --- |
+| TypeScript y ESLint | Aprobados, sin advertencias |
+| Vitest | 57 pruebas aprobadas en seis archivos, incluidas las 5 de `agent.test.ts` |
+| Compilación, PWA y rutas | Base `/whiteboard_bridge/`, cuatro enlaces y 13 recursos offline válidos, incluidos los cuatro archivos del agente |
+| Playwright completo | 32 pruebas aprobadas, incluidas las 3 de `agent.spec.ts` |
+| Revisión visual | Diálogo del agente a 1440 y 360 px, tema oscuro y paleta Más herramientas. Capturas `evidence/agent-v0.6-dialog-1440.png` y `agent-v0.6-dialog-360.png` |
+| Script Python del conocimiento | Ejecutado con Python 3.12 fuera de CI. Genera el ejemplo, su conteo de líneas coincide con Bridge en 3.300 combinaciones y su validador detecta los errores de la lista de verificación |
+| Microsoft 365 Copilot | No se ejecutó una sesión del creador de agentes. Los límites usados provienen de la documentación de Microsoft Learn |
+| Publicación remota | No realizada |
+
+Casos nuevos:
+
+- El paquete del agente cumple 30 caracteres de nombre, 1.000 de descripción y 8.000 de instrucciones.
+- Instrucciones y conocimiento nombran las siete figuras, los 12 colores de notas y los tipos prohibidos que usa el codificador de Microsoft.
+- El ejemplo se importa, se copia a Microsoft con 10 objetos y sin advertencias, y no tiene textos cortados. El ejemplo dentro del conocimiento es idéntico al archivo publicado.
+- La tabla de errores del conocimiento coincide con los mensajes reales de nueve errores frecuentes.
+- Los errores de importación indican el objeto y el campo, también en el navegador.
+- El diálogo copia las instrucciones al portapapeles, enlaza los cuatro archivos, abre el ejemplo y cabe en 360 px.
+- La migración v1 conserva el texto de rectángulos y elipses.
+
+La ejecución completa de Playwright se conserva en `evidence/agent-v0.6-e2e.json`.
+
+## v0.5.0
 
 Fecha: 16-10-2026. Base remota `771ecb1227b11b2846f2e2813ab052e4543a7889`. Ejecutor Linux con Node 24.19.0 y npm 11.9.0. No se añaden ni actualizan dependencias.
 

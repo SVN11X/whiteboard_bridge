@@ -33,5 +33,5 @@ assert.equal(JSON.parse(worker.match(/\bBASE=("[^"]+")/)?.[1] || 'null'), base, 
 const precache = JSON.parse(worker.match(/\bURLS=(\[[^\n;]*\])/)?.[1] || 'null');
 assert.ok(Array.isArray(precache), 'Falta la lista de recursos offline');
 for (const reference of precache) await checkResource(reference);
-for (const file of ['', 'index.html', 'manifest.webmanifest', 'examples/primer-proyecto.wbridge']) assert.ok(precache.includes(base + file), `Falta ${base + file} en la caché offline`);
+for (const file of ['', 'index.html', 'manifest.webmanifest', 'examples/primer-proyecto.wbridge', 'agente/instrucciones.txt', 'agente/conocimiento-pizarras-bridge.txt', 'agente/configuracion.txt', 'agente/ejemplo-pizarra.json']) assert.ok(precache.includes(base + file), `Falta ${base + file} en la caché offline`);
 console.log(`GitHub Pages: ${base}, ${references.length} enlaces y ${precache.length} recursos offline válidos.`);

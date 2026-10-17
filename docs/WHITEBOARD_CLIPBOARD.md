@@ -28,7 +28,7 @@ La opción **Microsoft Whiteboard · editable** produce HTML con ese contenedor 
 | --- | --- |
 | Nota | Texto, tamaño, rotación y color aproximado a la paleta de Microsoft |
 | Texto | Texto plano, color, alineación, tamaño y posición |
-| Rectángulo, elipse, triángulo, rombo, pentágono, paralelogramo y rectángulo redondeado | Figura con código de tipo, relleno, borde, tamaño, texto y posición |
+| Rectángulo, elipse, triángulo, rombo, pentágono, paralelogramo y píldora (`capsule`) | Figura con código de tipo, relleno, borde, tamaño, texto y posición. La flecha sólida (`arrow-shape`) no está incluida |
 | Grupo | Se envían sus miembros compatibles por separado; se informa la pérdida de agrupación |
 | Imagen, tinta, línea, conector o flecha sólida | Se rechaza la copia completa a Microsoft con un mensaje; el usuario puede elegir PNG o el formato propio de Bridge |
 

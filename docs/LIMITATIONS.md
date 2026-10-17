@@ -37,3 +37,9 @@ No se sostiene que todo intercambio editable sea imposible en cualquier escenari
 ## Entorno de v0.5.0
 
 La disposición se adapta a las capturas, pero no se replica el servicio de Microsoft: Compartir entrega un archivo, los comentarios son locales y no se incluyen cuentas, coautoría ni Loop. Los enlaces y videos se añaden como enlaces editables que se pueden abrir; no se incrustan iframes. Las cuadrículas se conservan en WBRIDGE; las exportaciones SVG/PNG continúan representando objetos sobre su fondo de exportación.
+
+## Agente de IA en v0.6.0
+
+El paquete del agente define el formato y revisa sus propios resultados, pero un modelo de lenguaje puede equivocarse. Bridge valida cada archivo antes de abrirlo y no reemplaza la pizarra actual. La calidad del contenido depende del contexto que se entregue y del modelo disponible en el tenant.
+
+El creador de agentes de Microsoft 365 Copilot, la carga de archivos de conocimiento y la capacidad de código dependen de la licencia y de la configuración de cada organización. No se probó una sesión real del creador de agentes. Una pizarra con muchos objetos puede tardar al pegarse en Microsoft Whiteboard. Por eso el agente propone dividirla sobre 400 objetos.

@@ -1,8 +1,10 @@
-# Whiteboard Bridge · v0.5.0
+# Whiteboard Bridge · v0.6.0
 
 Pizarra web local y laboratorio de interoperabilidad, preparada para **GitHub Pages**. Interfaz en español, React + TypeScript, sin cuenta, backend, claves ni bibliotecas desde CDN. Los objetos se editan y conservan dentro de Bridge.
 
 **El usuario confirmó el funcionamiento del pegado en Microsoft Whiteboard el 16-10-2026.** El modo se llama **Microsoft Whiteboard · editable**. Admite notas, texto y siete figuras básicas; el formato propio conserva también tinta, imágenes y conectores dentro de Bridge. PNG es una imagen aplanada. No se genera un archivo `.whiteboard`.
+
+**Novedad de 0.6.0:** el sitio publica un agente de IA para Microsoft 365 Copilot que genera pizarras `.json` listas para importar y copiar completas a Microsoft Whiteboard. Ver [Crear pizarras con un agente de IA](#crear-pizarras-con-un-agente-de-ia).
 
 ## Espacio de trabajo y edición directa
 
@@ -23,6 +25,19 @@ La versión 0.5.0 conserva la reducción de la cabecera de 52 a 40 px y las barr
 
 Para diagnosticar la versión del destino, **Configuración → Diagnóstico de portapapeles → Capturar muestra Whiteboard** permite pegar un objeto de prueba copiado desde el original y descargar sus datos. Ver [WHITEBOARD_CLIPBOARD.md](docs/WHITEBOARD_CLIPBOARD.md) para evidencia, alcance y pasos de captura.
 
+## Crear pizarras con un agente de IA
+
+**Configuración → Crear con un agente de IA** (o **Más herramientas → Crear con IA**) abre el paquete para crear un agente en Microsoft 365 Copilot. El agente lee el contexto que le entregues, hace preguntas cuando falta información, propone la estructura y entrega un `.json` que Bridge importa. La pizarra usa solo notas, texto y figuras básicas, así se copia completa a Microsoft Whiteboard.
+
+| Archivo | Dónde va |
+| --- | --- |
+| [`instrucciones.txt`](public/agente/instrucciones.txt) | Campo Instrucciones del agente, menos de 8.000 caracteres |
+| [`conocimiento-pizarras-bridge.txt`](public/agente/conocimiento-pizarras-bridge.txt) | Conocimiento del agente |
+| [`configuracion.txt`](public/agente/configuracion.txt) | Nombre, descripción, capacidad e iniciadores de conversación |
+| [`ejemplo-pizarra.json`](public/agente/ejemplo-pizarra.json) | Ejemplo válido para comparar o abrir en Bridge |
+
+Los archivos se pueden copiar o descargar desde la página y funcionan sin conexión. El detalle está en [AGENTE_IA.md](docs/AGENTE_IA.md).
+
 ## Importar y exportar una pizarra
 
 El formato principal es **`.wbridge`**: un archivo JSON UTF-8 que conserva objetos editables, grupos, conectores, imágenes, posiciones, estilos y zoom.
@@ -32,7 +47,7 @@ El formato principal es **`.wbridge`**: un archivo JSON UTF-8 que conserva objet
 - **Configuración → Exportar → Selección editable · WBRIDGE**: descarga solo la selección, incluyendo descendientes de grupos.
 - **Configuración → Exportar → Formatos y ayuda**: muestra la tabla de compatibilidad y un archivo de ejemplo descargable.
 - Se conservan exportaciones JSON, SVG y PNG. Las imágenes y el SVG son representaciones visuales.
-- Importar valida el archivo antes de abrirlo y conserva la pizarra anterior. `.whiteboard` de Microsoft no tiene un importador validado.
+- Importar valida el archivo antes de abrirlo y conserva la pizarra anterior. Si hay un error, el mensaje indica el objeto y el campo, por ejemplo `objeto 4 (id o4), campo label`. `.whiteboard` de Microsoft no tiene un importador validado.
 
 La especificación, límites y comportamiento de grupos están en [FILE_FORMAT.md](docs/FILE_FORMAT.md).
 
@@ -53,7 +68,7 @@ npm run check
 npm run preview
 ```
 
-Vista de producción: `http://127.0.0.1:4173/whiteboard_bridge/`. `npm run check` comprueba tipos, lint, 50 pruebas unitarias/integración y compilación, incluidas las rutas y recursos de Pages. Las pruebas adicionales se describen en [TESTING.md](docs/TESTING.md).
+Vista de producción: `http://127.0.0.1:4173/whiteboard_bridge/`. `npm run check` comprueba tipos, lint, 57 pruebas unitarias/integración y compilación, incluidas las rutas y recursos de Pages. Las pruebas adicionales se describen en [TESTING.md](docs/TESTING.md).
 
 ## Publicar en GitHub Pages
 
@@ -109,6 +124,7 @@ La PWA funciona offline después de que se instale su caché. Las actualizacione
 - [Portapapeles de Whiteboard, evidencia y captura](docs/WHITEBOARD_CLIPBOARD.md)
 - [Conexiones con puntos fijos y codos](docs/CONNECTORS.md)
 - [Formato editable e importación/exportación](docs/FILE_FORMAT.md)
+- [Agente de IA para generar pizarras](docs/AGENTE_IA.md)
 - [Auditoría del prototipo](docs/AUDIT.md)
 - [Arquitectura y elección del motor](docs/ARCHITECTURE.md)
 - [Investigación del portapapeles y Microsoft](docs/CLIPBOARD_RESEARCH.md)

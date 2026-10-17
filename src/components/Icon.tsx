@@ -19,6 +19,7 @@ const paths: Record<string, string> = {
   trash: 'M3 6h18M8 6V3h8v3M5 6l1 15h12l1-15M10 10v7M14 10v7', lock: 'M6 10h12v11H6zM8 10V6a4 4 0 018 0v4', unlock: 'M6 10h12v11H6zM8 10V6a4 4 0 018 0',
   group: 'M3 3h6v6H3zM15 15h6v6h-6zM15 3h6v6h-6zM3 15h6v6H3zM6 9v6M9 6h6M18 9v6M9 18h6', ungroup: 'M3 3h6v6H3zM15 15h6v6h-6zM15 3h6v6h-6zM3 15h6v6H3z',
   help: 'M9 8a3 3 0 116 0c0 2-3 2-3 5M12 17h.01M12 2a10 10 0 110 20 10 10 0 010-20', check: 'M4 12l5 5L20 6', external: 'M14 3h7v7M21 3L10 14M10 3H3v18h18v-7',
+  agent: 'M12 3l1.8 4.7L18 9.5l-4.2 1.8L12 16l-1.8-4.7L6 9.5l4.2-1.8zM19 14l.9 2.1 2.1.9-2.1.9L19 20l-.9-2.1-2.1-.9 2.1-.9zM5 15l.6 1.4 1.4.6-1.4.6L5 19l-.6-1.4L3 17l1.4-.6z',
   menu: 'M4 6h16M4 12h16M4 18h16', more: 'M5 12h.01M12 12h.01M19 12h.01', rotate: 'M20 7V2l-4 4a8 8 0 102 12M20 7h-6', arrowDown: 'M12 3v18M5 14l7 7 7-7', arrowUp: 'M12 21V3M5 10l7-7 7 7',
 };
 export function Icon({ name, size = 20, style }: { name: string; size?: number; style?: CSSProperties }) {

@@ -8,6 +8,15 @@ import { validateObservation, type LabRecord } from '../../src/interoperability/
 
 describe('Documentos y migración', () => {
   it('recupera un documento completo sin perder identidades o propiedades', () => { const b = demoBoard(); expect(deserializeBoard(serializeBoard(b))).toEqual(b); });
+  it('conserva el texto de rectángulos y elipses al migrar el JSON v1', () => {
+    const b = deserializeBoard(JSON.stringify({ version: 1, objects: [{ type: 'rect', x: 0, y: 0, w: 300, h: 120, color: '#cbe799', text: 'Texto en figura' }, { type: 'ellipse', x: 400, y: 0, w: 200, h: 120, color: '#99d9ef', text: 'Elipse' }] }));
+    expect(b.objects.map(o => 'text' in o ? o.text : null)).toEqual(['Texto en figura', 'Elipse']);
+  });
+  it('indica el objeto y el campo del primer error de validación', () => {
+    const board = demoBoard(), raw = JSON.parse(serializeBoard(board)); delete raw.objects[2].label;
+    expect(() => deserializeBoard(JSON.stringify(raw))).toThrow(`Proyecto no válido: objeto 3 (id ${board.objects[2].id}), campo label:`);
+    expect(() => deserializeBoard(JSON.stringify({ ...JSON.parse(serializeBoard(board)), createdAt: '2026-10-17' }))).toThrow(/campo createdAt: Invalid ISO datetime/);
+  });
   it('migra el JSON real del laboratorio anterior', () => { const b = deserializeBoard(JSON.stringify({ version: 1, objects: [{ id: 'o1', type: 'note', x: 10, y: 20, w: 200, h: 180, color: '#f8df84', text: 'Conservado' }, { type: 'ellipse', x: 40, y: 50, w: 100, h: 70, color: '#ff0000', text: '' }] })); expect(b.version).toBe(2); expect(b.objects[0]).toMatchObject({ type: 'sticky', text: 'Conservado', width: 200, x: 10 }); expect(b.objects[1]).toMatchObject({ type: 'shape', shape: 'ellipse' }); });
   it('rechaza valores no finitos, IDs duplicados, versiones futuras e imágenes activas', () => {
     const b = demoBoard(); expect(() => parseBoard({ ...b, version: 99 })).toThrow();
